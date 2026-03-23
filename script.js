@@ -1,10 +1,24 @@
-const complimentList = [
+// --- 1. THE DATA SOURCE ---
+const originalCompliments = [
+    "You’re sweeter than an Oreo dipped in milk (but way more precious).",
+    "I love that your taste is as refined as a KitKat Dark—not too sweet, just perfect.",
+    "If you were a snack, you’d be an Eet-Sum-Mor biscuit, because I always want more of your time.",
+    "I’d travel to every Food Lover’s in Cape Town just to find you the perfect brownie.",
+    "You’re cooler than your favorite frozen yogurt on a hot day.",
+    "You deserve all the ice cream in the world and then some.",
+    "I hope your day is as satisfying as that first crunch of a salty Lays chip.",
+    "You're more comforting than a box of Eet-Sum-Mors and a warm cup of tea.",
+    "I love that I know the 'last resort' is Thai Sweet Chili, but you're always my first choice.",
+    "You make my heart melt faster than a bowl of frozen yogurt.",
+    "I love your 'all-time favorites,' but you are officially mine.",
+    "You’re the 'extra' in my Eet-Sum-Mor.",
     "You are the best part of my day, every single day.",
     "I love how you always stay true to yourself.",
     "You have a way of making everyone around you feel special.",
     "I am constantly in awe of your strength.",
     "You’re not just a student; you’re a visionary.",
     "Your passion is what makes you so beautiful.",
+    "The way you handle pressure is a masterclass in grace.",
     "I hope you see yourself the way I see you.",
     "You are a light that never fades.",
     "I’m so lucky to be the one you choose to share your life with.",
@@ -14,6 +28,8 @@ const complimentList = [
     "You are my favorite place to be.",
     "You’re doing a great job, even when you don't feel like it.",
     "I love how your mind finds beauty in the small things.",
+    "You are the peace I didn't know I was looking for.",
+    "I’m so proud of the way you balance everything.",
     "Your kindness is a superpower.",
     "You have a heart that matches your beautiful smile.",
     "I love how you never settle for less than your best.",
@@ -22,6 +38,7 @@ const complimentList = [
     "You make me want to be a better man.",
     "Your laugh is the sound of home to me.",
     "I believe in your dreams as much as you do.",
+    "You are incredibly resilient.",
     "You have such a calming presence.",
     "I love the way you love.",
     "You are a rare and precious soul.",
@@ -44,24 +61,10 @@ const complimentList = [
     "I’m always in your corner, no matter what.",
     "You are simply unforgettable.",
     "I love your 'never-give-up' attitude.",
-    "You’ve been on my mind all day.",
-    "You’re sweeter than an Oreo dipped in milk (but way more precious).",
-    "I love that your taste is as refined as a KitKat Dark—not too sweet, just perfect.",
-    "You’re my 'all-time favorite,' just like those childhood Lays you love.",
-    "If you were a snack, you’d be an Eet-Sum-Mor biscuit, because I always want more of your time.",
-    "I’d travel to every Food Lover’s in Cape Town just to find you the perfect brownie.",
-    "You’re cooler than your favorite frozen yogurt on a hot day.",
-    "You deserve all the ice cream in the world and then some.",
-    "Even when you're only in the mood for dark chocolate, you’re still the brightest part of my day.",
-    "I hope your day is as satisfying as that first crunch of a salty Lays chip.",
-    "You're more comforting than a box of Eet-Sum-Mors and a warm cup of tea.",
-    "I love that I know the 'last resort' is Thai Sweet Chili, but you're always my first choice.",
-    "You make my heart melt faster than a bowl of frozen yogurt.",
-    "I love your 'all-time favorites,' but you are officially mine.",
-    "You’re the 'extra' in my Eet-Sum-Mor."
+    "You’ve been on my mind all day."
 ];
 
-const verseList = [
+const originalVerses = [
     "Psalm 139:14 - I praise you because I am fearfully and wonderfully made.",
     "Proverbs 31:25 - She is clothed with strength and dignity.",
     "Philippians 4:13 - I can do all things through Christ who strengthens me.",
@@ -164,26 +167,51 @@ const verseList = [
     "Psalm 121:8 - The Lord will watch over your coming and going."
 ];
 
+// --- 2. TRACKING ARRAYS (The "State") ---
+let complimentsRemaining = [...originalCompliments];
+let versesRemaining = [...originalVerses];
+
+// Helper to shuffle an array (Fisher-Yates algorithm)
+function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+}
+
+// Initial shuffle
+shuffle(complimentsRemaining);
+shuffle(versesRemaining);
+
+// --- 3. THE DISPLAY LOGIC ---
 function showItem(type) {
     const textElement = document.getElementById('display-text');
     let selectedText = "";
 
-    // Fade out
     textElement.style.opacity = 0;
 
     setTimeout(() => {
         if (type === 'compliment') {
-            const index = Math.floor(Math.random() * complimentList.length);
-            selectedText = complimentList[index];
+            // If we ran out, reset and reshuffle
+            if (complimentsRemaining.length === 0) {
+                complimentsRemaining = [...originalCompliments];
+                shuffle(complimentsRemaining);
+            }
+            // "Pop" the last one off so it's removed from tracking
+            selectedText = complimentsRemaining.pop();
         } else {
-            const index = Math.floor(Math.random() * verseList.length);
-            selectedText = verseList[index];
+            // Same for verses
+            if (versesRemaining.length === 0) {
+                versesRemaining = [...originalVerses];
+                shuffle(versesRemaining);
+            }
+            selectedText = versesRemaining.pop();
         }
 
         textElement.innerText = selectedText;
         textElement.style.opacity = 1;
         textElement.classList.add('fade-in');
-
+        
         setTimeout(() => textElement.classList.remove('fade-in'), 500);
     }, 300);
 }
