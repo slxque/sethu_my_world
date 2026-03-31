@@ -1,7 +1,7 @@
 // --- 1. THE DATA SOURCE ---
 const originalCompliments = [
     "You’re sweeter than an Oreo dipped in milk (but way more precious).",
-    "I love that your taste is as refined as a KitKat Dark—not too sweet, just perfect.",
+    "I love that your taste is as refined as a KitKat Dark, not too sweet, just perfect.",
     "If you were a snack, you’d be an Eet-Sum-Mor biscuit, because I always want more of your time.",
     "I’d travel to every Food Lover’s in Cape Town just to find you the perfect brownie.",
     "You’re cooler than your favorite frozen yogurt on a hot day.",
@@ -81,10 +81,10 @@ const originalVerses = [
     "1 Corinthians 16:14 - Do everything in love.",
     "John 14:27 - Peace I leave with you; my peace I give you.",
     "Zephaniah 3:17 - The Lord your God is in your midst; He will quiet you by His love.",
-    "Psalm 121:1 - I lift up my eyes to the mountains—where does my help come from?",
+    "Psalm 121:1 - I lift up my eyes to the mountains, where does my help come from?",
     "Proverbs 4:23 - Above all else, guard your heart.",
     "2 Timothy 1:7 - For God has not given us a spirit of fear, but of power and love.",
-    "Psalm 27:1 - The Lord is my light and my salvation—whom shall I fear?",
+    "Psalm 27:1 - The Lord is my light and my salvation, whom shall I fear?",
     "Exodus 14:14 - The Lord will fight for you; you need only to be still.",
     "Psalm 119:105 - Your word is a lamp for my feet, a light on my path.",
     "Romans 15:13 - May the God of hope fill you with all joy and peace.",
