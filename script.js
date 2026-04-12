@@ -1,6 +1,6 @@
 const supabaseUrl = 'https://hkgiedepklnazpllwswh.supabase.co';
 const supabaseKey = 'sb_publishable_LslgXtX5dpZfJ09zpst1gw_KnjGcOfB';
-const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+const db = window.supabase.createClient(supabaseUrl, supabaseKey);
 
 // --- 1. THE DATA SOURCE ---
 const originalCompliments = [
@@ -221,7 +221,8 @@ function showItem(type) {
 }
 
 async function logMood(moodValue) {
-    const { data, error } = await supabase
+    // Change 'supabase' to 'db' here
+    const { data, error } = await db
         .from('mood_logs') 
         .insert([{ mood_type: moodValue }]);
 
@@ -229,6 +230,5 @@ async function logMood(moodValue) {
         console.error('Error:', error);
     } else {
         console.log('Mood logged successfully:', moodValue);
-        // This is a great place to add a "Thank you" alert for her
     }
 }
