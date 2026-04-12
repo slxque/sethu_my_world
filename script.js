@@ -1,3 +1,7 @@
+const supabaseUrl = 'https://your-project-url.supabase.co';
+const supabaseKey = 'your-anon-public-key';
+const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
 // --- 1. THE DATA SOURCE ---
 const originalCompliments = [
     "You’re sweeter than an Oreo dipped in milk (but way more precious).",
@@ -214,4 +218,17 @@ function showItem(type) {
         
         setTimeout(() => textElement.classList.remove('fade-in'), 500);
     }, 300);
+}
+
+async function logMood(moodValue) {
+    const { data, error } = await supabase
+        .from('mood_logs') 
+        .insert([{ mood_type: moodValue }]);
+
+    if (error) {
+        console.error('Error:', error);
+    } else {
+        console.log('Mood logged successfully:', moodValue);
+        // This is a great place to add a "Thank you" alert for her
+    }
 }
