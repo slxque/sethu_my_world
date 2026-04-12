@@ -1,5 +1,5 @@
-const supabaseUrl = 'https://your-project-url.supabase.co';
-const supabaseKey = 'your-anon-public-key';
+const supabaseUrl = 'https://hkgiedepklnazpllwswh.supabase.co';
+const supabaseKey = 'sb_publishable_LslgXtX5dpZfJ09zpst1gw_KnjGcOfB';
 const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
 // --- 1. THE DATA SOURCE ---
