@@ -5,16 +5,12 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    /* Transitioning from Snow White (#ffffff) to a Very Light Blush (#fff0f3) */
     background: linear-gradient(-45deg, #ffffff, #fff0f3, #ffe5ec, #fff9fb);
     background-size: 400% 400%;
-
-    /* 12 seconds for a soft, subtle shift */
     animation: lightFlow 12s ease infinite;
-
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     text-align: center;
-    overflow: hidden;
+    overflow-y: auto;
 }
 
 @keyframes lightFlow {
@@ -23,24 +19,26 @@ body {
     100% { background-position: 0% 50%; }
 }
 
-/* --- 2. THE GLASSMORPHISM CONTAINER --- */
+/*PAPER BACKGROUND*/
 .container {
-    padding: 30px;
+    padding: 50px 30px;
     width: 85%;
     max-width: 500px;
-    /* More transparent white to match the lighter background */
-    background: rgba(255, 255, 255, 0.4);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    border-radius: 30px;
-    border: 1px solid rgba(255, 255, 255, 0.6);
-    box-shadow: 0 10px 40px 0 rgba(255, 77, 109, 0.1);
+    background: #fdfaf0;
+    position: relative;
+    filter: drop-shadow(0 10px 15px rgba(0,0,0,0,2));
+    /*ripped effect*/
+    clip-path: polygon(
+        0% 2%, 4% 0%, 9% 3%, 16% 1%, 22% 4%, 28% 2%, 35% 5%, 41% 2%, 48% 4%, 53% 1%, 60% 3%, 66% 0%, 72% 4%, 79% 2%, 85% 5%, 91% 2%, 96% 4%, 100% 1%,
+        98% 6%, 100% 12%, 97% 18%, 100% 24%, 98% 30%, 100% 38%, 97% 45%, 100% 52%, 98% 60%, 100% 68%, 97% 75%, 100% 82%, 98% 88%, 100% 95%, 98% 100%,
+        94% 98%, 88% 100%, 82% 97%, 76% 100%, 70% 98%, 62% 100%, 55% 97%, 48% 100%, 42% 98%, 35% 100%, 28% 97%, 21% 100%, 15% 98%, 8% 100%, 0% 97%,
+        2% 93%, 0% 86%, 3% 79%, 1% 72%, 4% 65%, 2% 58%, 5% 51%, 2% 44%, 4% 37%, 1% 30%, 3% 22%, 0% 15%, 4% 8%
+        );
 }
 
 /* --- 3. THE HOT RED LETTERING --- */
 h1 {
-    color: #ff0000; /* Pure Hot Red */
-    /* Subtle shadow to keep it crisp on the light background */
+    color: #8b0000; 
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.05);
     font-size: 2.2rem;
     margin-bottom: 20px;
@@ -53,7 +51,7 @@ h1 {
 }
 
 .subtext {
-    color: #ff0000;
+    color: #8b0000;
     font-style: italic;
     font-size: 1.1rem;
     margin-bottom: 25px;
@@ -62,7 +60,7 @@ h1 {
 
 .creator-tag {
     font-size: 0.7rem;
-    color: #ff0000;
+    color: #8b0000;
     opacity: 0.6;
     margin-top: 30px;
     letter-spacing: 1.5px;
