@@ -31,7 +31,7 @@ body {
     background-size: 200% 200%;
     position: relative;
     margin: 20px auto;
-    filter: drop-shadow(0 15px 25px rgba(0,0,0,0,15));
+    filter: drop-shadow(10px 15px 25px rgba(0,0,0,0,15));
     /*ripped effect*/
     clip-path: polygon(
         0% 2%, 4% 0%, 9% 3%, 16% 1%, 22% 4%, 28% 2%, 35% 5%, 41% 2%, 48% 4%, 53% 1%, 60% 3%, 66% 0%, 72% 4%, 79% 2%, 85% 5%, 91% 2%, 96% 4%, 100% 1%,
