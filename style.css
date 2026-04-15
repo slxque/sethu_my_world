@@ -30,6 +30,7 @@ body {
         linear-gradient(20deg, transparent 20%, rgba(0,0,0,0.03) 25%, transparent 30%) ;
     background-size: 200% 200%;
     position: relative;
+    margin: 20px auto;
     filter: drop-shadow(0 15px 25px rgba(0,0,0,0,15));
     /*ripped effect*/
     clip-path: polygon(
@@ -70,6 +71,7 @@ h1 {
     margin-top: 30px;
     letter-spacing: 1.5px;
     text-transform: uppercase;
+    font-family: 'Courier New', Courier, monospace;
 }
 
 /* --- 4. INTERACTIVE ICONS --- */
