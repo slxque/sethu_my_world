@@ -1,16 +1,15 @@
-/* --- 1. THE DESK ENVIRONMENT --- */
+/* --- 1. THE DESK ENVIRONMENT & CENTER LOGIC --- */
 body {
     margin: 0;
     height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    /* Deeper, more sophisticated "Ambient" background */
     background: linear-gradient(-45deg, #2c3e50, #fd79a8, #a29bfe, #fab1a0);
     background-size: 400% 400%;
     animation: lightFlow 18s ease infinite;
     font-family: 'Georgia', serif;
-    overflow: hidden;
+    overflow: hidden; /* Prevents the whole page from scrolling */
     touch-action: manipulation;
 }
 
@@ -22,7 +21,7 @@ body {
 
 /* --- 2. THE HIGH-FIDELITY PAPER --- */
 .papper-wrapper {
-    perspective: 2000px; /* Essential for 3D depth */
+    perspective: 2000px;
     width: 100%;
     display: flex;
     justify-content: center;
@@ -35,113 +34,111 @@ body {
     max-width: 500px;
     min-height: 600px;
     position: relative;
-    background-color: #f9f4e8; /* Base paper color */
+    background-color: #f9f4e8;
 
-    /* APPLING THE REALISM FILTERS FROM HTML */
+    /* Realism Filters linked to HTML SVG */
     filter: url(#real-paper-grain) url(#physical-torn-edge);
 
-    /* LAYERED LIGHTING & TEXTURE */
+    /* Layered Lighting: Notebook lines + Lamp light effect */
     background-image: 
-        /* Layer A: Notebook lines (subtle opacity) */
         repeating-linear-gradient(transparent, transparent 24px, rgba(209, 229, 240, 0.7) 25px),
-        /* Layer B: Specular Highlight (Simulates light hitting the top-left) */
         radial-gradient(circle at 10% 10%, rgba(255,255,255,0.5) 0%, transparent 70%),
-        /* Layer C: Ambient Occlusion (Subtle darkening towards bottom-right) */
         linear-gradient(135deg, transparent 50%, rgba(0,0,0,0.03) 100%);
-    
     background-size: 100% 25px, 100% 100%, 100% 100%;
 
-    /* TORN PAPER SHAPE */
+    /* Physically Based Shadow Stack */
+    box-shadow: 
+        2px 2px 2px rgba(0,0,0,0.1),
+        10px 15px 25px rgba(0,0,0,0.1),
+        20px 35px 50px rgba(0,0,0,0.08);
+
+    /* Hand-Torn Clip Path */
     clip-path: polygon(
-        2% 1%, 10% 0%, 20% 2%, 30% 1%, 40% 3%, 50% 1%, 60% 2%, 70% 0%, 80% 3%, 90% 1%, 100% 2%,
-        98% 15%, 100% 30%, 97% 45%, 100% 60%, 98% 75%, 100% 90%, 99% 100%,
-        85% 98%, 70% 100%, 55% 97%, 40% 100%, 25% 98%, 10% 100%, 0% 98%,
-        1% 85%, 0% 70%, 2% 55%, 0% 40%, 1% 25%, 0% 10%
+        2% 1%, 10% 0%, 25% 1%, 40% 3%, 60% 1%, 80% 2%, 100% 0%,
+        98% 20%, 100% 50%, 98% 80%, 99% 100%,
+        80% 98%, 50% 100%, 20% 98%, 0% 100%,
+        1% 80%, 0% 50%, 2% 20%, 0% 0%
     );
 
-    /* AMBIENT OCCLUSION SHADOW STACK */
-    box-shadow: 
-        2px 2px 2px rgba(0,0,0,0.1),       /* Contact shadow (sharp) */
-        10px 15px 25px rgba(0,0,0,0.1),    /* Medium depth */
-        20px 35px 50px rgba(0,0,0,0.08);   /* Soft ambient spread */
-
-    /* Slight 3D Tilt */
-    transform: rotateX(1.5deg) rotateY(-1.5deg) rotateZ(-0.5deg);
-    transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+    /* Subtle 3D Tilt */
+    transform: rotateX(1.5deg) rotateY(-1.5deg);
+    transition: transform 0.6s ease;
 }
 
-/* --- 3. UI ELEMENT POLISH --- */
+/* --- 3. UI ELEMENTS --- */
 .camera-btn {
     position: absolute;
     top: 25px;
     right: 25px;
-    font-size: 2.2rem;
+    font-size: 2rem;
     cursor: pointer;
-    /* Makes the emoji look like a physical sticker */
     filter: drop-shadow(3px 4px 2px rgba(0,0,0,0.2));
-    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     z-index: 100;
 }
 
-.camera-btn:hover {
-    transform: scale(1.2) rotate(15deg);
-}
+.camera-btn:hover { transform: scale(1.2) rotate(15deg); }
 
 #display-text {
     font-family: 'Brush Script MT', cursive;
     color: #8b0000;
-    font-size: 2.5rem;
+    font-size: 2.3rem;
     margin-top: 10px;
-    filter: drop-shadow(1px 1px 0px rgba(255,255,255,0.5));
 }
 
 .subtext {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: #a04040;
     font-family: 'Courier New', monospace;
     text-transform: uppercase;
-    letter-spacing: 2px;
+    letter-spacing: 1.5px;
 }
 
-/* --- 4. SELECTION ZONE REFINEMENT --- */
+/* Selection Zone for Moods */
 .selection-zone {
     display: flex;
     justify-content: center;
-    gap: 40px;
+    gap: 30px;
     margin: 40px 0;
 }
 
 .glow-item {
     font-size: 3rem;
     cursor: pointer;
-    transition: all 0.3s ease;
-    filter: drop-shadow(0 0 5px rgba(255,255,255,0.2));
+    transition: transform 0.3s ease;
 }
 
-.glow-item:hover {
-    transform: translateY(-10px) scale(1.1);
-    filter: drop-shadow(0 0 20px rgba(255,255,255,0.6));
+.glow-item:hover { transform: scale(1.2); }
+
+/* --- 4. DEVICE COMPATIBILITY (THE "PHONE" FIX) --- */
+@media (max-width: 600px) {
+    .container {
+        width: 92vw;
+        padding: 40px 25px;
+        min-height: 550px;
+        /* Remove 3D tilt on mobile for better legibility */
+        transform: none; 
+    }
+
+    #display-text {
+        font-size: 1.8rem;
+    }
+
+    .selection-zone {
+        gap: 20px;
+    }
 }
 
-/* --- 5. THE POLAROID (PREVIEW) --- */
-.polaroid {
-    background: #fff;
-    padding: 10px 10px 40px 10px;
-    box-shadow: 3px 8px 15px rgba(0,0,0,0.1);
-    border: 1px solid rgba(0,0,0,0.05);
-    transform: rotate(-3deg);
-}
-
-.filter-vintage {
-    filter: sepia(0.2) contrast(1.1) brightness(1.1);
-}
-
-/* --- 6. CREATOR TAG --- */
+/* --- 5. CLEANUP --- */
 .creator-tag {
     font-family: 'Courier New', monospace;
-    font-size: 0.65rem;
+    font-size: 0.6rem;
     opacity: 0.5;
-    margin-top: 50px;
-    letter-spacing: 1.5px;
-    line-height: 1.5;
+    margin-top: 40px;
+    letter-spacing: 1px;
+}
+
+* {
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
 }
