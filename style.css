@@ -1,88 +1,127 @@
-/* --- 1. BASE STYLES --- */
+/* --- 1. THE LIGHT PINK DYNAMIC BACKGROUND --- */
 body {
-    margin: 0;
-    padding: 0;
-    height: 100vh;
-    width: 100vw;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    /* This matches the soft pink in your original screenshot */
-    background-color: #fde2e4; 
-    font-family: 'Georgia', serif;
-    overflow: hidden;
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* Transitioning from Snow White (#ffffff) to a Very Light Blush (#fff0f3) */
+    background: linear-gradient(-45deg, #ffffff, #fff0f3, #ffe5ec, #fff9fb);
+    background-size: 400% 400%;
+
+    /* 12 seconds for a soft, subtle shift */
+    animation: lightFlow 12s ease infinite;
+
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    text-align: center;
+    overflow: hidden;
 }
 
-/* --- 2. LAYOUT CONTAINER --- */
-.papper-wrapper {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+@keyframes lightFlow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 
+/* --- 2. THE GLASSMORPHISM CONTAINER --- */
 .container {
-    text-align: center;
-    max-width: 800px; /* Gives the text room to breathe like in the screenshot */
-    width: 90%;
-    padding: 20px;
+    padding: 30px;
+    width: 85%;
+    max-width: 500px;
+    /* More transparent white to match the lighter background */
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border-radius: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 10px 40px 0 rgba(255, 77, 109, 0.1);
 }
 
-/* --- 3. TYPOGRAPHY (MATCHING YOUR SCREENSHOT) --- */
-#display-text {
-    color: #800000; /* Deep maroon/red from your screenshot */
-    font-size: 3rem; /* Large and impactful */
-    font-weight: bold;
-    margin: 20px 0;
-    line-height: 1.2;
+/* --- 3. THE HOT RED LETTERING --- */
+h1 {
+    color: #ff0000; /* Pure Hot Red */
+    /* Subtle shadow to keep it crisp on the light background */
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.05);
+    font-size: 2.2rem;
+    margin-bottom: 20px;
+    min-height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.3s ease;
+    font-weight: 700;
 }
 
 .subtext {
-    color: #a34b4b; /* Lighter maroon for the top text */
-    font-style: italic;
-    font-size: 1.2rem;
-    margin-bottom: 10px;
+    color: #ff0000;
+    font-style: italic;
+    font-size: 1.1rem;
+    margin-bottom: 25px;
+    font-weight: 600;
 }
 
-/* --- 4. SELECTION ZONE --- */
+.creator-tag {
+    font-size: 0.7rem;
+    color: #ff0000;
+    opacity: 0.6;
+    margin-top: 30px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+
+/* --- 4. INTERACTIVE ICONS --- */
 .selection-zone {
-    display: flex;
-    justify-content: center;
-    gap: 40px;
-    margin: 50px 0;
+    display: flex;
+    justify-content: center;
+    gap: 60px;
+    margin-top: 20px;
 }
 
 .glow-item {
-    font-size: 4rem;
-    cursor: pointer;
-    transition: transform 0.3s ease, filter 0.3s ease;
-    /* Soft glow effect for the emojis */
-    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.8));
+    font-size: 4rem;
+    cursor: pointer;
+    transition: transform 0.2s ease, filter 0.3s ease;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.glow-item:hover {
-    transform: scale(1.2);
-    filter: drop-shadow(0 0 20px rgba(255, 255, 255, 1));
-}
+.heart { filter: drop-shadow(0 0 10px #ff4d6d); }
+.hands { filter: drop-shadow(0 0 10px #ffd700); }
 
-/* --- 5. FOOTER --- */
-.creator-tag {
-    font-size: 0.8rem;
-    color: #666;
-    letter-spacing: 2px;
-    margin-top: 40px;
-    text-transform: uppercase;
-}
+.glow-item:active { transform: scale(0.85); }
 
-/* --- 6. MOBILE RESPONSIVENESS --- */
+/* --- 5. MOBILE RESPONSIVENESS (Samsung A12 / iPhone 13) --- */
 @media (max-width: 600px) {
-    #display-text {
-        font-size: 2rem;
-    }
-    .glow-item {
-        font-size: 3rem;
-    }
-    .selection-zone {
-        gap: 20px;
-    }
+    .container {
+        width: 88%;
+        padding: 25px 15px;
+    }
+
+    h1 {
+        font-size: 1.4rem;
+        min-height: 180px;
+        line-height: 1.4;
+    }
+
+    .selection-zone {
+        gap: 45px;
+    }
+
+    .glow-item {
+        font-size: 3.2rem;
+    }
+
+    .creator-tag {
+        font-size: 0.6rem;
+    }
+}
+
+/* Smooth Fade Animation */
+.fade-in {
+    animation: fadeInEffect 0.5s ease-in forwards;
+}
+
+@keyframes fadeInEffect {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
 }
