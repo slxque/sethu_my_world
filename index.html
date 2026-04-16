@@ -9,20 +9,6 @@
 </head>
 <body>
 
-    <svg style="position: absolute; width: 0; height: 0; pointer-events: none;" aria-hidden="true">
-        <filter id="real-paper-grain">
-            <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="5" result="noise" />
-            <feDiffuseLighting in="noise" lighting-color="#f9f4e8" surfaceScale="1.5">
-                <feDistantLight azimuth="45" elevation="60" />
-            </feDiffuseLighting>
-        </filter>
-
-        <filter id="physical-torn-edge">
-            <feTurbulence type="fractalNoise" baseFrequency="0.015" numOctaves="4" seed="5" result="noise" />
-            <feDisplacementMap in="SourceGraphic" in2="noise" scale="4" />
-        </filter>
-    </svg>
-
     <div class="papper-wrapper">    
         <div class="container">
             <div class="camera-btn" role="button" aria-label="Add Memory">📸</div>
