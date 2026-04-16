@@ -2,28 +2,59 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>For My World 🌍❤️</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-<div class="papper-wrapper">    
-    <div class="container">
-        <p class="subtext">Choose a path to see how much you are loved...</p>
-        <h1 id="display-text">How are you feeling today Siphosethu?</h1>
-    
-        <div class="selection-zone">
-            <span class="glow-item heart" onclick="showItem('compliment'); logMood('Loved')">❤️</span>
-            <span class="glow-item hands" onclick="showItem('verse'); logMood('Praisful')">🙏</span>
-        </div>
-    
-    
-        <p class="creator-tag">TO: SIPHOSETHU...ALWAYS IN YOUR CORNER: KHANYA MDLANKOMO</p>
-    </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="script.js"></script>
+    <svg style="position: absolute; width: 0; height: 0; pointer-events: none;" aria-hidden="true">
+        <filter id="real-paper-grain">
+            <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="5" result="noise" />
+            <feDiffuseLighting in="noise" lighting-color="#f9f4e8" surfaceScale="1.5">
+                <feDistantLight azimuth="45" elevation="60" />
+            </feDiffuseLighting>
+        </filter>
+
+        <filter id="physical-torn-edge">
+            <feTurbulence type="fractalNoise" baseFrequency="0.015" numOctaves="4" seed="5" result="noise" />
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="4" />
+        </filter>
+    </svg>
+
+    <div class="papper-wrapper">    
+        <div class="container">
+            <div class="camera-btn" role="button" aria-label="Add Memory">📸</div>
+
+            <header>
+                <p class="subtext">Choose a path to see how much you are loved...</p>
+                <h1 id="display-text">How are you feeling today Siphosethu?</h1>
+            </header>
+        
+            <div class="selection-zone">
+                <span class="glow-item heart" onclick="showItem('compliment'); logMood('Loved')">❤️</span>
+                <span class="glow-item hands" onclick="showItem('verse'); logMood('Praisful')">🙏</span>
+            </div>
+
+            <div class="polaroid-stack" id="memoryStack" style="display: none;">
+                <div class="polaroid">
+                    <img src="https://via.placeholder.com/200" alt="Memory" class="filter-vintage">
+                    <div class="snap-caption">Just a little something...</div>
+                </div>
+            </div>
+
+            <nav class="page-nav">
+                <span class="nav-arrow" id="prev-btn">←</span>
+                <span class="nav-arrow" id="next-btn">→</span>
+            </nav>
+        
+            <footer>
+                <p class="creator-tag">TO: SIPHOSETHU...ALWAYS IN YOUR CORNER: KHANYA MDLANKOMO</p>
+            </footer>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
 </body>
 </html>
