@@ -5,7 +5,8 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    background: linear-gradient(-45deg, #ffffff, #fff0f3, #ffe5ec, #fff9fb);
+    /* Darkened the pigment for more contrast against the paper */
+    background: linear-gradient(-45deg, #e6e6e6, #ffccd5, #ffb3c1, #ffe5ec);
     background-size: 400% 400%;
     animation: lightFlow 12s ease infinite;
     font-family: 'Georgia', serif;
@@ -22,7 +23,7 @@ body {
 
 /* --- 2. RIPPED PAPER LAYOUT --- */
 .paper-wrapper {
-    filter: drop-shadow(10px 15px 20px rgba(0, 0, 0, 0.15));
+    filter: drop-shadow(10px 15px 20px rgba(0, 0, 0, 0.2));
     display: flex;
     justify-content: center;
     width: 100%;
