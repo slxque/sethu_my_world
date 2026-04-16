@@ -1,15 +1,16 @@
-/* --- 1. THE DESK ENVIRONMENT & CENTER LOGIC --- */
+/* --- 1. THE ENVIRONMENT --- */
 body {
     margin: 0;
     height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    background: linear-gradient(-45deg, #2c3e50, #fd79a8, #a29bfe, #fab1a0);
+    /* Richer gradient to provide contrast for the cream paper */
+    background: linear-gradient(-45deg, #1a1a2e, #d63031, #e84393, #ffd1dc);
     background-size: 400% 400%;
     animation: lightFlow 18s ease infinite;
     font-family: 'Georgia', serif;
-    overflow: hidden; /* Prevents the whole page from scrolling */
+    overflow: hidden; 
     touch-action: manipulation;
 }
 
@@ -19,120 +20,109 @@ body {
     100% { background-position: 0% 50%; }
 }
 
-/* --- 2. THE HIGH-FIDELITY PAPER --- */
+/* --- 2. THE PAPER REALISM ENGINE --- */
 .papper-wrapper {
-    perspective: 2000px;
+    perspective: 2500px;
     width: 100%;
     display: flex;
     justify-content: center;
-    padding: 20px;
+    padding: 15px;
 }
 
 .container {
-    padding: 60px 45px;
+    padding: 60px 35px;
     width: 90vw;
-    max-width: 500px;
-    min-height: 600px;
+    max-width: 460px;
+    min-height: 580px;
     position: relative;
-    background-color: #f9f4e8;
+    background-color: #f9f4e8; /* Base paper tone */
 
-    /* Realism Filters linked to HTML SVG */
-    filter: url(#real-paper-grain) url(#physical-torn-edge);
-
-    /* Layered Lighting: Notebook lines + Lamp light effect */
-    background-image: 
-        repeating-linear-gradient(transparent, transparent 24px, rgba(209, 229, 240, 0.7) 25px),
-        radial-gradient(circle at 10% 10%, rgba(255,255,255,0.5) 0%, transparent 70%),
-        linear-gradient(135deg, transparent 50%, rgba(0,0,0,0.03) 100%);
-    background-size: 100% 25px, 100% 100%, 100% 100%;
-
-    /* Physically Based Shadow Stack */
-    box-shadow: 
-        2px 2px 2px rgba(0,0,0,0.1),
-        10px 15px 25px rgba(0,0,0,0.1),
-        20px 35px 50px rgba(0,0,0,0.08);
-
-    /* Hand-Torn Clip Path */
+    /* HIGH-DETAIL TORN EDGE (Sharp, non-blurry rip) */
     clip-path: polygon(
-        2% 1%, 10% 0%, 25% 1%, 40% 3%, 60% 1%, 80% 2%, 100% 0%,
-        98% 20%, 100% 50%, 98% 80%, 99% 100%,
-        80% 98%, 50% 100%, 20% 98%, 0% 100%,
-        1% 80%, 0% 50%, 2% 20%, 0% 0%
+        0% 2%, 5% 0%, 10% 2%, 15% 1%, 20% 3%, 25% 1%, 30% 2%, 35% 0%, 40% 3%, 45% 1%, 50% 2%, 55% 0%, 60% 3%, 65% 1%, 70% 2%, 75% 0%, 80% 3%, 85% 1%, 90% 2%, 95% 0%, 100% 2%,
+        98% 25%, 100% 50%, 98% 75%, 99% 100%,
+        85% 98%, 70% 100%, 55% 97%, 40% 100%, 25% 98%, 10% 100%, 0% 98%,
+        1% 75%, 0% 50%, 2% 25%, 0% 5%
     );
 
-    /* Subtle 3D Tilt */
-    transform: rotateX(1.5deg) rotateY(-1.5deg);
-    transition: transform 0.6s ease;
+    /* LAYERED LIGHTING & GRAIN */
+    background-image: 
+        /* Layer A: Notebook lines */
+        repeating-linear-gradient(transparent, transparent 24px, rgba(209, 229, 240, 0.7) 25px),
+        /* Layer B: Specular Highlight (Light hitting top-left) */
+        radial-gradient(circle at 10% 10%, rgba(255,255,255,0.4) 0%, transparent 70%),
+        /* Layer C: Micro-Grain Texture (Using a noise pattern) */
+        url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAAXNSR0IArs4c6QAAADFJREFUGFdjYGBgYIhhYGB4xcDA8AeIf2CY/R+I/zMwyDAwMPxh+H8RiP8zMEgC4j9GABR4BxwN8T5CAAAAAElFTkSuQmCC');
+    
+    background-size: 100% 25px, 100% 100%, auto;
+
+    /* AMBIENT OCCLUSION SHADOWS (Creates the 3D 'pop') */
+    box-shadow: 
+        0px 1px 2px rgba(0,0,0,0.2),      /* Hard contact shadow */
+        10px 15px 25px rgba(0,0,0,0.15),   /* Mid-depth shadow */
+        20px 35px 50px rgba(0,0,0,0.1);    /* Ambient spread */
+
+    /* Slight 3D Tilt */
+    transform: rotateX(2deg) rotateY(-2deg) rotateZ(-0.5deg);
 }
 
-/* --- 3. UI ELEMENTS --- */
+/* --- 3. UI POLISH --- */
 .camera-btn {
     position: absolute;
     top: 25px;
     right: 25px;
     font-size: 2rem;
+    filter: drop-shadow(2px 3px 2px rgba(0,0,0,0.2));
     cursor: pointer;
-    filter: drop-shadow(3px 4px 2px rgba(0,0,0,0.2));
-    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     z-index: 100;
 }
-
-.camera-btn:hover { transform: scale(1.2) rotate(15deg); }
 
 #display-text {
     font-family: 'Brush Script MT', cursive;
     color: #8b0000;
-    font-size: 2.3rem;
-    margin-top: 10px;
+    font-size: 2.2rem;
+    line-height: 1.2;
+    margin-top: 15px;
 }
 
 .subtext {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     color: #a04040;
     font-family: 'Courier New', monospace;
     text-transform: uppercase;
-    letter-spacing: 1.5px;
+    letter-spacing: 2px;
 }
 
-/* Selection Zone for Moods */
 .selection-zone {
     display: flex;
     justify-content: center;
-    gap: 30px;
+    gap: 35px;
     margin: 40px 0;
 }
 
 .glow-item {
-    font-size: 3rem;
+    font-size: 3.2rem;
     cursor: pointer;
     transition: transform 0.3s ease;
+    filter: drop-shadow(2px 4px 3px rgba(0,0,0,0.1));
 }
 
-.glow-item:hover { transform: scale(1.2); }
+.glow-item:hover { transform: scale(1.15) translateY(-5px); }
 
-/* --- 4. DEVICE COMPATIBILITY (THE "PHONE" FIX) --- */
+/* --- 4. DEVICE RESPONSIVENESS --- */
 @media (max-width: 600px) {
     .container {
         width: 92vw;
-        padding: 40px 25px;
-        min-height: 550px;
-        /* Remove 3D tilt on mobile for better legibility */
-        transform: none; 
+        padding: 45px 25px;
+        min-height: 540px;
+        transform: none; /* Flatten for easier use on phones */
     }
-
-    #display-text {
-        font-size: 1.8rem;
-    }
-
-    .selection-zone {
-        gap: 20px;
-    }
+    #display-text { font-size: 1.8rem; }
 }
 
-/* --- 5. CLEANUP --- */
 .creator-tag {
     font-family: 'Courier New', monospace;
-    font-size: 0.6rem;
+    font-size: 0.65rem;
     opacity: 0.5;
     margin-top: 40px;
     letter-spacing: 1px;
