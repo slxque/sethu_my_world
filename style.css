@@ -1,131 +1,69 @@
-/* --- 1. THE ENVIRONMENT --- */
 body {
     margin: 0;
     padding: 0;
     height: 100vh;
-    width: 100vw;
     display: flex;
     justify-content: center;
     align-items: center;
-    /* Soft, deep background to make the cream paper pop */
-    background: radial-gradient(circle at center, #ff9a9e 0%, #fecfef 100%);
-    font-family: 'Georgia', serif;
-    overflow: hidden;
+    background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+    background-size: 400% 400%;
+    animation: gradient 15s ease infinite;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* --- 2. THE PAPER STRUCTURE --- */
+@keyframes gradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
 .papper-wrapper {
+    width: 100%;
     display: flex;
     justify-content: center;
-    align-items: center;
-    width: 100%;
-    height: 100%;
 }
 
 .container {
-    position: relative;
-    width: 85%;
-    max-width: 420px;
-    min-height: 550px;
-    background-color: #fdfaf0; /* High-quality cream paper */
-    padding: 50px 30px;
-    
-    /* THE TORN EDGE FIX: We use a less aggressive, more organic rip */
-    clip-path: polygon(
-        0% 2%, 10% 0%, 20% 1%, 35% 0%, 50% 2%, 65% 0%, 80% 1%, 92% 0%, 100% 2%, 
-        98% 30%, 100% 70%, 98% 100%, 
-        85% 99%, 65% 100%, 50% 98%, 35% 100%, 15% 99%, 0% 100%, 
-        2% 70%, 0% 30%
-    );
-
-    /* LAYERED LIGHTING & REALISM */
-    background-image: 
-        /* Subtle Paper Grain (Noise) */
-        url("https://www.transparenttextures.com/patterns/p6.png"),
-        /* Notebook Lines */
-        repeating-linear-gradient(transparent, transparent 27px, #e8eef2 28px);
-    
-    /* STACKED SHADOWS (This adds the 3D 'lift' off the screen) */
-    box-shadow: 
-        0px 2px 5px rgba(0,0,0,0.1),
-        5px 15px 30px rgba(0,0,0,0.08),
-        10px 25px 50px rgba(0,0,0,0.05);
-
-    /* Center content inside paper */
-    display: flex;
-    flex-direction: column;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 2rem;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     text-align: center;
-    transform: rotate(-1deg); /* Natural tilt */
-}
-
-/* --- 3. UI POLISH --- */
-.camera-btn {
-    position: absolute;
-    top: 20px;
-    right: 25px;
-    font-size: 1.8rem;
-    opacity: 0.8;
+    max-width: 400px;
+    width: 90%;
 }
 
 #display-text {
-    font-family: 'Brush Script MT', cursive;
-    color: #7d1d1d;
-    font-size: 2.2rem;
-    margin: 20px 0;
-    line-height: 1.1;
+    color: #333;
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
 }
 
 .subtext {
-    font-family: 'Courier New', monospace;
-    font-size: 0.7rem;
-    color: #9e7a7a;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    color: #666;
+    font-size: 0.9rem;
 }
 
 .selection-zone {
     display: flex;
     justify-content: center;
-    gap: 30px;
-    margin: 30px 0;
+    gap: 2rem;
+    margin: 2rem 0;
 }
 
 .glow-item {
     font-size: 3rem;
     cursor: pointer;
-    transition: transform 0.2s ease;
-    filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.1));
+    transition: transform 0.3s ease;
 }
 
 .glow-item:hover {
     transform: scale(1.2);
 }
 
-.page-nav {
-    margin-top: auto;
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    color: #7d1d1d;
-    font-weight: bold;
-    font-size: 1.5rem;
-}
-
 .creator-tag {
-    font-family: 'Courier New', monospace;
-    font-size: 0.55rem;
-    color: #b59b9b;
-    margin-top: 20px;
-    letter-spacing: 0.5px;
-}
-
-/* --- 4. MOBILE FIX --- */
-@media (max-width: 480px) {
-    .container {
-        width: 90%;
-        padding: 40px 20px;
-    }
-    #display-text {
-        font-size: 1.8rem;
-    }
+    font-size: 0.7rem;
+    color: #999;
+    margin-top: 2rem;
+    text-transform: uppercase;
 }
