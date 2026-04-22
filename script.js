@@ -1,6 +1,6 @@
 /**
  * FOR MY WORLD - Siphosethu's Project
- * Final Integrated Script - Complete Compliments & Verses
+ * Final Integrated Script - Cloud Synced & 3D UI
  */
 
 // --- 1. GLOBAL CONFIG & STATE ---
@@ -9,7 +9,8 @@ const BUCKET_NAME = 'diary-images';
 const supabaseUrl = 'https://hkgiedepklnazpllwswh.supabase.co';
 const supabaseKey = 'sb_publishable_LslgXtX5dpZfJ09zpst1gw_KnjGcOfB';
 
-let dailyUploads = JSON.parse(localStorage.getItem('myDiaryData')) || {};
+// We keep dailyUploads as a local state, but we populate it from Supabase now
+let dailyUploads = {}; 
 const supabaseClient = window.supabase ? window.supabase.createClient(supabaseUrl, supabaseKey) : null;
 
 // --- 2. DATA ARRAYS ---
@@ -234,7 +235,6 @@ function closeFullScreen() {
 async function handleUpload(event) {
     const files = event.target.files;
     if (!files || !files.length || !supabaseClient) return;
-    const dateKey = new Date().toISOString().split('T')[0];
 
     for (let file of files) {
         const userCaption = prompt(`Enter a caption for "${file.name}":`, "A special moment");
@@ -252,28 +252,43 @@ async function handleUpload(event) {
                 image_url: publicUrl
             }]);
 
-            if (!dailyUploads[dateKey]) dailyUploads[dateKey] = [];
-            dailyUploads[dateKey].push({
-                url: publicUrl,
-                type: file.type.startsWith('video') ? 'video' : 'image',
-                caption: userCaption
-            });
-
-            localStorage.setItem('myDiaryData', JSON.stringify(dailyUploads));
-            loadSavedEntries();
+            // Refresh the screen immediately
+            await loadSavedEntries();
         } catch (err) { console.error("Upload failed:", err.message); }
     }
 }
 
-// --- 6. UI RENDERING (FIXED PLACEHOLDER) ---
-function loadSavedEntries() {
+// --- 6. UI RENDERING (CLOUD SYNCED + 3D UI) ---
+async function loadSavedEntries() {
     const container = document.getElementById('diary-container');
     if (!container) return;
+    
+    container.innerHTML = '<div style="text-align:center; color:#ffb6c1; font-style:italic;">Loading memories...</div>';
+
+    if (supabaseClient) {
+        const { data, error } = await supabaseClient
+            .from(TABLE_NAME)
+            .select('*')
+            .not('image_url', 'is', null) 
+            .order('created_at', { ascending: false });
+
+        if (!error && data) {
+            dailyUploads = {}; 
+            data.forEach(row => {
+                const dateKey = row.created_at.split('T')[0];
+                if (!dailyUploads[dateKey]) dailyUploads[dateKey] = [];
+                dailyUploads[dateKey].push({
+                    url: row.image_url,
+                    type: row.mood_type,
+                    caption: row.caption
+                });
+            });
+        }
+    }
 
     container.innerHTML = '';
-    const keys = Object.keys(dailyUploads).filter(k => dailyUploads[k].length > 0);
+    const keys = Object.keys(dailyUploads);
 
-    // Placeholder Logic
     if (keys.length === 0) {
         container.innerHTML = `
             <div id="placeholder-text" style="color: #ffb6c1; font-style: italic; font-family: 'Georgia', serif; text-align: center; padding-top: 50px;">
@@ -285,7 +300,8 @@ function loadSavedEntries() {
 
     keys.sort().reverse().forEach(dateKey => {
         const entry = document.createElement('div');
-        entry.className = 'diary-entry';
+        entry.className = 'diary-entry diary-entry-3d'; 
+        
         entry.innerHTML = `
             <div class="entry-header">
                 <div class="date-main">${dateKey.replace(/-/g, '/')}</div>
@@ -345,11 +361,13 @@ function openFullScreen(url, type, caption) {
     viewer.style.display = 'flex';
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    if (document.getElementById('diary-container')) loadSavedEntries();
+// Final Global Setup
+document.addEventListener('DOMContentLoaded', async () => {
+    if (document.getElementById('diary-container')) {
+        await loadSavedEntries();
+    }
 });
 
-// Final mapping to window
 window.showItem = showItem; window.logMood = logMood; window.handleUpload = handleUpload;
 window.openGrid = openGrid; window.closeGrid = closeGrid;
 window.openFullScreen = openFullScreen; window.closeFullScreen = closeFullScreen;
