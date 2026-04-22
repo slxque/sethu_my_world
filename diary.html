@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#ffb6c1">
+
+    <title>Our Digital Diary 📖✨</title>
+
+    <link rel="icon" type="image/png" href="icon.png">
+    <link rel="apple-touch-icon" href="icon.png">
+
+    <link rel="stylesheet" href="diary-style.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="manifest" href="manifest.json">
+
+    <script>
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.register('sw.js');
+        }
+    </script>
+</head>
+<body>
+
+<div class="back-btn" onclick="window.location.href='index.html'">⬅️ Back</div>
+<div class="add-btn" onclick="triggerUpload(event)">+</div>
+
+<div class="book-container">
+    <div id="diary-container" class="writing-surface">
+        <div id="placeholder-text" class="placeholder">Make a diary entry</div>
+    </div>
+</div>
+
+<div id="gallery-modal" class="modal-overlay" onclick="closeGrid()">
+    <div class="close-x" onclick="closeGrid()">&times;</div>
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <div id="gallery-grid" class="gallery-grid"></div>
+    </div>
+</div>
+
+<div id="full-screen-viewer" class="full-screen-overlay" onclick="closeFullScreen()">
+    <div class="close-x" onclick="closeFullScreen()">&times;</div>
+    <div id="viewer-media" onclick="event.stopPropagation()">
+    </div>
+</div>
+
+<input type="file" id="file-input" style="display: none;" accept="image/*,video/*" multiple onchange="handleUpload(event)">
+
+<script src="script.js"></script>
+
+</body>
+</html>
