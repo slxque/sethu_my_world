@@ -1,6 +1,6 @@
 /**
  * FOR MY WORLD - Siphosethu's Project
- * Final Integrated Script - Cloud Synced & 3D UI
+ * Final Integrated Script - Cloud Synced, 3D UI & Ghost Caption Fix
  */
 
 // --- 1. GLOBAL CONFIG & STATE ---
@@ -9,7 +9,6 @@ const BUCKET_NAME = 'diary-images';
 const supabaseUrl = 'https://hkgiedepklnazpllwswh.supabase.co';
 const supabaseKey = 'sb_publishable_LslgXtX5dpZfJ09zpst1gw_KnjGcOfB';
 
-// We keep dailyUploads as a local state, but we populate it from Supabase now
 let dailyUploads = {}; 
 const supabaseClient = window.supabase ? window.supabase.createClient(supabaseUrl, supabaseKey) : null;
 
@@ -231,14 +230,20 @@ function closeFullScreen() {
     if (container) container.innerHTML = '';
 }
 
-// --- 5. THE UPLOAD LOGIC ---
+// --- 5. THE UPLOAD LOGIC (FIXED CAPTION GUARD) ---
 async function handleUpload(event) {
     const files = event.target.files;
     if (!files || !files.length || !supabaseClient) return;
 
     for (let file of files) {
-        const userCaption = prompt(`Enter a caption for "${file.name}":`, "A special moment");
-        if (userCaption === null) continue;
+        let userCaption = prompt(`Enter a caption for "${file.name}" (Leave blank for none):`);
+        
+        // If they click 'Cancel', skip this file entirely
+        if (userCaption === null) continue; 
+        
+        // Trim whitespace
+        userCaption = userCaption.trim();
+
         const filePath = `uploads/${Date.now()}-${file.name}`;
 
         try {
@@ -248,11 +253,10 @@ async function handleUpload(event) {
 
             await supabaseClient.from(TABLE_NAME).insert([{
                 mood_type: file.type.startsWith('video') ? 'video' : 'image',
-                caption: userCaption,
+                caption: userCaption || null, // Saves as NULL in DB if string is empty
                 image_url: publicUrl
             }]);
 
-            // Refresh the screen immediately
             await loadSavedEntries();
         } catch (err) { console.error("Upload failed:", err.message); }
     }
@@ -322,7 +326,7 @@ async function loadSavedEntries() {
                 <div class="picture-frame">
                     ${item.type === 'video' ? `<video src="${item.url}" muted loop autoplay></video>` : `<img src="${item.url}">`}
                 </div>
-                <div class="polaroid-footer">${item.caption}</div>
+                <div class="polaroid-footer">${item.caption || ""}</div>
             `;
             pile.appendChild(photo);
         });
@@ -347,15 +351,19 @@ function openGrid(dateKey) {
     modal.style.display = 'flex';
 }
 
+// FULL SCREEN VIEW (FIXED GHOST CAPTION STRIP)
 function openFullScreen(url, type, caption) {
     const viewer = document.getElementById('full-screen-viewer');
     const container = document.getElementById('viewer-media');
     if (!viewer || !container) return;
 
+    // Guard: Only show strip if caption is not null, not empty, and not the literal string "null"
+    const hasCaption = caption && caption !== "null" && caption.trim() !== "";
+
     container.innerHTML = `
         <div class="media-wrapper">
             ${type === 'video' ? `<video src="${url}" controls autoplay></video>` : `<img src="${url}">`}
-            <div class="caption-strip">${caption}</div>
+            ${hasCaption ? `<div class="caption-strip">${caption}</div>` : ''}
         </div>
     `;
     viewer.style.display = 'flex';
