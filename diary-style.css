@@ -2,7 +2,6 @@
 body {
     margin: 0; padding: 0; min-height: 100vh; width: 100vw;
     background-color: #fff;
-    /* Notebook horizontal lines */
     background-image: repeating-linear-gradient(transparent, transparent 34px, #ffb6c1 34px, #ffb6c1 35px);
     background-size: 100% 35px;
     font-family: 'Segoe UI', sans-serif;
@@ -15,7 +14,13 @@ body::before {
     background-color: rgba(255, 182, 193, 0.6); z-index: 1;
 }
 
-/* --- 2. DIARY ENTRIES & PILES --- */
+.back-btn {
+    position: fixed; top: 10px; left: 5px; z-index: 10;
+    font-size: 0.9rem; cursor: pointer; background: #fff;
+    padding: 5px 10px; border-radius: 8px; color: #ff4d6d;
+    font-weight: bold; border: 1px solid #ffe5ec;
+}
+
 .writing-surface {
     position: relative;
     padding-left: 80px;
@@ -24,6 +29,7 @@ body::before {
     width: calc(100% - 100px);
 }
 
+/* --- 2. DIARY ENTRIES & PILES --- */
 .diary-entry {
     background: transparent;
     width: 100%;
@@ -83,13 +89,13 @@ body::before {
     margin-top: 8px;
 }
 
-/* --- 3. MODAL & GRID (FIXED) --- */
+/* --- 3. THE GRID FIX --- */
 .modal-overlay {
     position: fixed;
     top: 0; left: 0; width: 100vw; height: 100vh;
     background: rgba(255, 255, 255, 0.4);
     backdrop-filter: blur(12px);
-    display: none; /* CRITICAL: This hides the X's when closed */
+    display: none;
     justify-content: center;
     align-items: center;
     z-index: 1000;
@@ -106,7 +112,6 @@ body::before {
     padding: 20px;
     background: rgba(255, 255, 255, 0.8);
     border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
 }
 
 .gallery-item {
@@ -120,14 +125,19 @@ body::before {
 }
 
 .gallery-item:hover { transform: scale(1.05); }
-.gallery-item img, .gallery-item video { width: 100%; height: 100%; object-fit: cover; }
 
-/* --- 4. FULL SCREEN VIEWER & CAPTION STRIP --- */
+.gallery-item img, .gallery-item video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* --- 4. FULL SCREEN VIEWER & SNAPCHAT STRIP FIX --- */
 .full-screen-overlay {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0,0,0,0.9);
-    display: none; /* CRITICAL: This hides the X's when closed */
+    display: none;
     justify-content: center;
     align-items: center;
     z-index: 2000;
@@ -139,8 +149,9 @@ body::before {
     justify-content: center; align-items: center;
 }
 
+/* The wrapper that holds the image and the strip together */
 .media-wrapper {
-    position: relative;
+    position: relative; /* CRITICAL: This keeps the strip inside the image bounds */
     display: inline-block;
     max-width: 90vw;
 }
@@ -153,9 +164,10 @@ body::before {
     border-radius: 8px;
 }
 
+/* THE SNAPCHAT STRIP */
 .caption-strip {
     position: absolute;
-    bottom: 15%;
+    bottom: 15%; /* Moves it up into the lower third of the image */
     left: 50%;
     transform: translateX(-50%);
     width: 85%;
@@ -169,45 +181,25 @@ body::before {
     border-radius: 4px;
     backdrop-filter: blur(4px);
     z-index: 2010;
-    pointer-events: none;
+    pointer-events: none; /* Allows clicks to pass through to video controls */
 }
 
-.caption-strip:empty {
-    display: none !important;
-}
-
-/* --- 5. BUTTONS & CLOSE X --- */
+/* --- 5. BUTTONS & UI --- */
 .add-btn {
     position: fixed; top: 10px; right: 20px; z-index: 100;
     width: 45px; height: 45px; background: #ff4d6d;
     color: white; border-radius: 50%;
     display: flex; justify-content: center; align-items: center;
     font-size: 2rem; cursor: pointer;
-    box-shadow: 0 4px 10px rgba(255, 77, 109, 0.3);
-}
-
-.back-btn {
-    position: fixed; top: 10px; left: 5px; z-index: 10;
-    font-size: 0.9rem; cursor: pointer; background: #fff;
-    padding: 5px 10px; border-radius: 8px; color: #ff4d6d;
-    font-weight: bold; border: 1px solid #ffe5ec;
 }
 
 .close-x {
-    position: absolute;
-    top: 20px;
-    right: 30px;
-    font-size: 3rem;
-    color: #ff4d6d;
-    cursor: pointer;
+    position: absolute; top: 20px; right: 30px;
+    font-size: 3rem; color: #ff4d6d; cursor: pointer;
     z-index: 3100;
-    line-height: 1;
-    user-select: none;
 }
 
-.full-screen-overlay .close-x {
-    color: white;
-}
+.full-screen-overlay .close-x { color: white; }
 
 /* --- 6. RESPONSIVENESS --- */
 @media screen and (max-width: 600px) {
