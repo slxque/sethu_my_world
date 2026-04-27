@@ -1,6 +1,6 @@
 /**
  * FOR MY WORLD - Siphosethu's Project
- * Final Integrated Script - Cloud Synced, 3D UI & Ghost Caption Fix
+ * Final Integrated Script - Supabase-Only (Placeholder & Ghosting Fix)
  */
 
 // --- 1. GLOBAL CONFIG & STATE ---
@@ -9,7 +9,7 @@ const BUCKET_NAME = 'diary-images';
 const supabaseUrl = 'https://hkgiedepklnazpllwswh.supabase.co';
 const supabaseKey = 'sb_publishable_LslgXtX5dpZfJ09zpst1gw_KnjGcOfB';
 
-let dailyUploads = {}; 
+let dailyUploads = {};
 const supabaseClient = window.supabase ? window.supabase.createClient(supabaseUrl, supabaseKey) : null;
 
 // --- 2. DATA ARRAYS ---
@@ -181,7 +181,34 @@ const originalVerses = [
     "Psalm 121:8 - The Lord will watch over your coming and going."
 ];
 
-// --- 3. HOMEPAGE ACTIONS ---
+// --- 3. DATABASE SYNC ---
+async function syncFromSupabase() {
+    if (!supabaseClient) return;
+    try {
+        const { data, error } = await supabaseClient.from(TABLE_NAME).select('*');
+        if (error) throw error;
+
+        const freshData = {};
+        if (data && data.length > 0) {
+            data.forEach(row => {
+                const date = row.created_at ? row.created_at.split('T')[0] : new Date().toISOString().split('T')[0];
+                if (!freshData[date]) freshData[date] = [];
+                freshData[date].push({
+                    type: row.mood_type,
+                    caption: row.caption,
+                    url: row.image_url
+                });
+            });
+        }
+        dailyUploads = freshData;
+        loadSavedEntries();
+    } catch (err) {
+        console.warn("Sync failed:", err.message);
+        loadSavedEntries();
+    }
+}
+
+// --- 4. HOMEPAGE ACTIONS ---
 async function showItem(type) {
     const displayElement = document.getElementById('display-text');
     if (!displayElement) return;
@@ -211,7 +238,7 @@ async function logMood(mood) {
     }
 }
 
-// --- 4. NAVIGATION & MODALS ---
+// --- 5. NAVIGATION & MODALS ---
 function triggerUpload(event) {
     if (event) event.stopPropagation();
     const input = document.getElementById('file-input');
@@ -230,20 +257,51 @@ function closeFullScreen() {
     if (container) container.innerHTML = '';
 }
 
-// --- 5. THE UPLOAD LOGIC (FIXED CAPTION GUARD) ---
+// --- 6. STICKY NOTE COMPONENT LOGIC ---
+async function loadStickyInterface() {
+    try {
+        const resp = await fetch('sticky.html');
+        const html = await resp.text();
+        const div = document.createElement('div');
+        div.innerHTML = html;
+        document.body.appendChild(div);
+    } catch (e) { console.error("Failed to load sticky.html component", e); }
+}
+
+window.openNoteModal = () => {
+    const modal = document.getElementById('note-modal');
+    if (modal) modal.style.display = 'flex';
+};
+
+window.closeNoteModal = () => {
+    const modal = document.getElementById('note-modal');
+    if (modal) modal.style.display = 'none';
+};
+
+window.saveStickyNote = async () => {
+    const textInput = document.getElementById('note-text');
+    if (!textInput || !textInput.value.trim()) return;
+    const text = textInput.value;
+    try {
+        const { error } = await supabaseClient.from(TABLE_NAME).insert([{ mood_type: 'note', caption: text, image_url: null }]);
+        if (error) throw error;
+        closeNoteModal();
+        textInput.value = '';
+        syncFromSupabase();
+    } catch (err) {
+        console.error("Save note failed:", err.message);
+        alert("Could not save your note right now.");
+    }
+};
+
+// --- 7. THE UPLOAD LOGIC ---
 async function handleUpload(event) {
     const files = event.target.files;
     if (!files || !files.length || !supabaseClient) return;
 
     for (let file of files) {
-        let userCaption = prompt(`Enter a caption for "${file.name}" (Leave blank for none):`);
-        
-        // If they click 'Cancel', skip this file entirely
-        if (userCaption === null) continue; 
-        
-        // Trim whitespace
-        userCaption = userCaption.trim();
-
+        const userCaption = prompt(`Enter a caption for "${file.name}":`, "A special moment");
+        if (userCaption === null) continue;
         const filePath = `uploads/${Date.now()}-${file.name}`;
 
         try {
@@ -253,82 +311,87 @@ async function handleUpload(event) {
 
             await supabaseClient.from(TABLE_NAME).insert([{
                 mood_type: file.type.startsWith('video') ? 'video' : 'image',
-                caption: userCaption || null, // Saves as NULL in DB if string is empty
+                caption: userCaption,
                 image_url: publicUrl
             }]);
-
-            await loadSavedEntries();
+            syncFromSupabase();
         } catch (err) { console.error("Upload failed:", err.message); }
     }
 }
 
-// --- 6. UI RENDERING (CLOUD SYNCED + 3D UI) ---
-async function loadSavedEntries() {
+// --- 8. UI RENDERING ---
+function loadSavedEntries() {
     const container = document.getElementById('diary-container');
     if (!container) return;
-    
-    container.innerHTML = '<div style="text-align:center; color:#ffb6c1; font-style:italic;">Loading memories...</div>';
 
-    if (supabaseClient) {
-        const { data, error } = await supabaseClient
-            .from(TABLE_NAME)
-            .select('*')
-            .not('image_url', 'is', null) 
-            .order('created_at', { ascending: false });
+    container.innerHTML = ''; // Clear to prevent ghosting
 
-        if (!error && data) {
-            dailyUploads = {}; 
-            data.forEach(row => {
-                const dateKey = row.created_at.split('T')[0];
-                if (!dailyUploads[dateKey]) dailyUploads[dateKey] = [];
-                dailyUploads[dateKey].push({
-                    url: row.image_url,
-                    type: row.mood_type,
-                    caption: row.caption
-                });
-            });
-        }
-    }
+    // 1. FILTER: Only count keys that contain actual visible content (notes or media)
+    const validKeys = Object.keys(dailyUploads).filter(dateKey => {
+        return dailyUploads[dateKey].some(i =>
+            (i.type === 'video' || i.type === 'image' || i.type === 'note') &&
+            i.caption !== "null" &&
+            (i.type === 'note' || (i.url && i.url !== "null"))
+        );
+    });
 
-    container.innerHTML = '';
-    const keys = Object.keys(dailyUploads);
-
-    if (keys.length === 0) {
+    // 2. CHECK: If no valid keys exist, show the placeholder
+    if (validKeys.length === 0) {
         container.innerHTML = `
-            <div id="placeholder-text" style="color: #ffb6c1; font-style: italic; font-family: 'Georgia', serif; text-align: center; padding-top: 50px;">
-                No memories logged yet... Click the "+" to add your first memory.
+            <div id="placeholder-text" style="color: #ffb6c1; font-style: italic; font-family: 'Georgia', serif; text-align: center; padding-top: 50px; width: 100%;">
+                No memories logged yet... <br> Click the "+" or "📝" to add your first memory.
             </div>
         `;
         return;
     }
 
-    keys.sort().reverse().forEach(dateKey => {
+    // 3. RENDER: Only use the valid keys found above
+    validKeys.sort().reverse().forEach(dateKey => {
+        const mediaItems = dailyUploads[dateKey].filter(i =>
+            (i.type === 'video' || i.type === 'image') && i.url && i.url !== "null"
+        );
+        const noteItems = dailyUploads[dateKey].filter(i =>
+            i.type === 'note' && i.caption && i.caption !== "null"
+        );
+
         const entry = document.createElement('div');
-        entry.className = 'diary-entry diary-entry-3d'; 
-        
+        entry.className = 'diary-entry';
         entry.innerHTML = `
             <div class="entry-header">
                 <div class="date-main">${dateKey.replace(/-/g, '/')}</div>
                 <div class="dear-diary">Dear diary,</div>
             </div>
-            <div class="polaroid-pile" onclick="openGrid('${dateKey}')"></div>
+            <div class="entry-content-wrapper"></div>
         `;
         container.appendChild(entry);
+        const contentWrapper = entry.querySelector('.entry-content-wrapper');
 
-        const pile = entry.querySelector('.polaroid-pile');
-        dailyUploads[dateKey].slice(0, 3).forEach((item, index) => {
-            const photo = document.createElement('div');
-            photo.className = 'stacked-polaroid';
-            const rot = (index % 2 === 0 ? 1 : -1) * (index * 4);
-            photo.style.transform = `rotate(${rot}deg) translate(${index * 5}px, ${index * 5}px)`;
-            photo.style.zIndex = 10 - index;
-            photo.innerHTML = `
-                <div class="picture-frame">
-                    ${item.type === 'video' ? `<video src="${item.url}" muted loop autoplay></video>` : `<img src="${item.url}">`}
-                </div>
-                <div class="polaroid-footer">${item.caption || ""}</div>
-            `;
-            pile.appendChild(photo);
+        if (mediaItems.length > 0) {
+            const pile = document.createElement('div');
+            pile.className = 'polaroid-pile';
+            pile.onclick = () => openGrid(dateKey);
+            mediaItems.slice(0, 3).forEach((item, index) => {
+                const photo = document.createElement('div');
+                photo.className = 'stacked-polaroid';
+                const rot = (index % 2 === 0 ? 1 : -1) * (index * 4);
+                photo.style.transform = `rotate(${rot}deg) translate(${index * 5}px, ${index * 5}px)`;
+                photo.style.zIndex = 10 - index;
+                photo.innerHTML = `
+                    <div class="picture-frame">
+                        ${item.type === 'video' ? `<video src="${item.url}" muted loop autoplay></video>` : `<img src="${item.url}">`}
+                    </div>
+                    <div class="polaroid-footer">${item.caption || ''}</div>
+                `;
+                pile.appendChild(photo);
+            });
+            contentWrapper.appendChild(pile);
+        }
+
+        noteItems.forEach(noteItem => {
+            const note = document.createElement('div');
+            note.className = 'sticky-note';
+            note.innerHTML = `<p>${noteItem.caption}</p>`;
+            contentWrapper.appendChild(note);
         });
     });
 }
@@ -339,41 +402,34 @@ function openGrid(dateKey) {
     if (!content) return;
     content.innerHTML = '';
 
-    dailyUploads[dateKey].forEach(item => {
+    // Filter to ensure only media with actual URLs show up in the grid
+    dailyUploads[dateKey].filter(i => (i.type === 'video' || i.type === 'image') && i.url && i.url !== "null").forEach(item => {
         const div = document.createElement('div');
         div.className = 'gallery-item';
-        div.innerHTML = `
-            ${item.type === 'video' ? `<video src="${item.url}"></video>` : `<img src="${item.url}">`}
-        `;
+        div.innerHTML = `${item.type === 'video' ? `<video src="${item.url}"></video>` : `<img src="${item.url}">`}`;
         div.onclick = () => openFullScreen(item.url, item.type, item.caption);
         content.appendChild(div);
     });
     modal.style.display = 'flex';
 }
 
-// FULL SCREEN VIEW (FIXED GHOST CAPTION STRIP)
 function openFullScreen(url, type, caption) {
     const viewer = document.getElementById('full-screen-viewer');
     const container = document.getElementById('viewer-media');
     if (!viewer || !container) return;
-
-    // Guard: Only show strip if caption is not null, not empty, and not the literal string "null"
-    const hasCaption = caption && caption !== "null" && caption.trim() !== "";
-
     container.innerHTML = `
         <div class="media-wrapper">
             ${type === 'video' ? `<video src="${url}" controls autoplay></video>` : `<img src="${url}">`}
-            ${hasCaption ? `<div class="caption-strip">${caption}</div>` : ''}
+            <div class="caption-strip">${caption || ''}</div>
         </div>
     `;
     viewer.style.display = 'flex';
 }
 
-// Final Global Setup
-document.addEventListener('DOMContentLoaded', async () => {
-    if (document.getElementById('diary-container')) {
-        await loadSavedEntries();
-    }
+// --- 9. INITIALIZATION ---
+document.addEventListener('DOMContentLoaded', () => {
+    loadStickyInterface();
+    syncFromSupabase();
 });
 
 window.showItem = showItem; window.logMood = logMood; window.handleUpload = handleUpload;
