@@ -1,0 +1,19 @@
+<div class="action-buttons">
+    <div class="note-btn" onclick="openNoteModal()" title="Write a Note">📝</div>
+</div>
+
+<div id="note-modal" class="note-modal-overlay" onclick="closeNoteModal()">
+    <div class="note-card" onclick="event.stopPropagation()">
+        <div class="note-header">
+            <h3>For My World ❤️</h3>
+            <p>Write a poem, letter, or a sweet thought...</p>
+        </div>
+
+        <textarea id="note-text" placeholder="Start typing here..."></textarea>
+
+        <div class="note-actions">
+            <button class="cancel-btn" onclick="closeNoteModal()">Cancel</button>
+            <button class="save-note-btn" onclick="saveStickyNote()">Stick it! ✨</button>
+        </div>
+    </div>
+</div>

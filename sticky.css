@@ -1,0 +1,173 @@
+/* --- STICKY NOTE COMPONENT STYLES --- */
+
+/* 1. BUTTONS & UI POSITIONING */
+.action-buttons {
+    position: fixed;
+    top: 90px;   /* Pushed down to sit clearly under the main '+' button */
+    right: 20px; /* Aligned with the right edge */
+    z-index: 1000;
+
+    /* Vertical stack for the two buttons */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px; /* Clean spacing between buttons */
+}
+
+.note-btn {
+    width: 48px;
+    height: 48px;
+    background: #ffb6c1;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.3rem;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 2px solid white;
+}
+
+.note-btn:hover {
+    transform: scale(1.1) rotate(5deg);
+    background: #ff99aa;
+}
+
+/* 2. THE STICKY NOTE (Diary Entry View) */
+.sticky-note {
+    background: #ffd1dc; /* Soft Pink Sticky Note */
+    padding: 35px 20px 20px 20px;
+    margin: 25px auto;
+    min-height: 160px;
+    width: 85%;
+    max-width: 320px;
+    box-shadow: 8px 8px 18px rgba(0, 0, 0, 0.08);
+    font-family: 'Georgia', serif;
+    line-height: 1.7;
+    color: #333;
+    transform: rotate(-2deg);
+    position: relative;
+    border-bottom-right-radius: 50px 10px; /* Corner curl effect */
+    display: block;
+    border: 1px solid rgba(0,0,0,0.05);
+}
+
+/* Transparent Red Washi Tape Effect */
+.sticky-note::before {
+    content: "";
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%) rotate(1deg);
+    width: 80px;
+    height: 24px;
+    /* Transparent Red (RGBA) to let diary lines/pink note show through */
+    background: rgba(255, 80, 100, 0.4);
+    backdrop-filter: blur(1px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    z-index: 2;
+}
+
+.sticky-note p {
+    margin: 0;
+    font-size: 1.15rem;
+    white-space: pre-wrap; /* Maintains line breaks for poems */
+    word-wrap: break-word;
+}
+
+/* 3. MODAL OVERLAY */
+.note-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: none; /* Controlled by JavaScript */
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    backdrop-filter: blur(5px);
+}
+
+/* 4. WRITING CARD (Popup) */
+.note-card {
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 25px;
+    width: 90%;
+    max-width: 420px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.note-header h3 {
+    margin: 0;
+    color: #ff4d6d;
+    font-size: 1.5rem;
+    text-align: center;
+}
+
+.note-header p {
+    color: #888;
+    font-size: 0.9rem;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.note-card textarea {
+    width: 100%;
+    height: 200px;
+    border: 2px solid #ffe5ec;
+    border-radius: 15px;
+    padding: 15px;
+    font-family: inherit;
+    font-size: 1.1rem;
+    outline: none;
+    resize: none;
+    box-sizing: border-box;
+    transition: border-color 0.3s;
+}
+
+.note-card textarea:focus {
+    border-color: #ffb6c1;
+}
+
+/* 5. MODAL BUTTONS */
+.note-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.cancel-btn, .save-note-btn {
+    flex: 1;
+    padding: 14px;
+    border: none;
+    border-radius: 30px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.2s;
+}
+
+.cancel-btn {
+    background: #f5f5f5;
+    color: #777;
+}
+
+.save-note-btn {
+    background: #ff4d6d;
+    color: white;
+}
+
+.cancel-btn:hover { background: #e0e0e0; }
+.save-note-btn:hover { background: #ff3355; transform: translateY(-2px); }
