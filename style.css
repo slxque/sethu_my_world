@@ -1,19 +1,23 @@
+/**
+ * FOR MY WORLD - Siphosethu's Project
+ * Complete style.css - With Horizontal Scrolling Hearts
+ */
+
+/* --- 1. GLOBAL STYLES & ANIMATED BACKGROUND --- */
 body {
     margin: 0;
     height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    /* Transitioning from Snow White to Very Light Blush and Pink */
+    /* Soft light gradient background */
     background: linear-gradient(-45deg, #ffffff, #fff0f3, #ffe5ec, #fff9fb);
     background-size: 400% 400%;
-
-    /* 12 seconds for a soft, subtle shift */
     animation: lightFlow 12s ease infinite;
-
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     text-align: center;
     overflow: hidden;
+    position: relative;
 }
 
 @keyframes lightFlow {
@@ -21,91 +25,62 @@ body {
     50% { background-position: 100% 50%; }
     100% { background-position: 0% 50%; }
 }
-/* --- 4. INTERACTIVE ICONS --- */
-.selection-zone {
-    display: flex;
-    justify-content: center;
-    gap: 60px;
-    margin-top: 20px;
-}
 
-.glow-item {
-    font-size: 4rem;
-    cursor: pointer;
-    transition: transform 0.2s ease, filter 0.3s ease;
-    user-select: none;
-    -webkit-tap-highlight-color: transparent;
-}
-
-
-.heart { filter: drop-shadow(0 0 10px #ff4d6d); }
-.hands { filter: drop-shadow(0 0 10px #ffd700); }
-
-.glow-item:active { transform: scale(0.85); }
-
-
-/* --- 2. THE GLASSMORPHISM LIGHT PINK CONTAINER --- */
-.container {
-    padding: 30px;
-    width: 85%;
-    max-width: 500px;
-    /* Soft Light Pink with Glass Effect */
-    background: rgba(255, 229, 236, 0.45);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    border-radius: 30px;
-    border: 1px solid rgba(255, 255, 255, 0.6);
-    box-shadow: 0 10px 40px 0 rgba(255, 77, 109, 0.15);
-}
-
-.papper-wrapper {
-    position: relative;
+/* --- 1b. MOVING HEARTS BACKGROUND LAYER --- */
+/* First row(s) moving Right */
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 100%;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    height: 100%;
+    z-index: -1;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 24 24" fill="%23ffb6c1"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>');
+    background-size: 120px 120px;
+    opacity: 0.35;
+    animation: moveHeartsRight 25s linear infinite;
 }
 
-.fade-in {
-    animation: fadeInEffect 0.5s ease-in forwards;
+/* Second row(s) moving Left */
+body::after {
+    content: "";
+    position: fixed;
+    top: 60px; /* Offset to alternate rows */
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 24 24" fill="%23ffb6c1"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>');
+    background-size: 120px 120px;
+    opacity: 0.35;
+    animation: moveHeartsLeft 30s linear infinite;
 }
 
-@keyframes fadeInEffect {
-    from { opacity: 0; transform: translateY(5px); }
-    to { opacity: 1; transform: translateY(0); }
+@keyframes moveHeartsRight {
+    from { background-position: 0 0; }
+    to { background-position: 1000px 0; }
 }
 
-.camera-icon {
-    position: absolute;
-    top: 30px;
-    right: 30px;
-    font-size: 2rem;
-    cursor: pointer;
-    z-index: 10;
-    background: white;
-    padding: 10px;
-    border-radius: 50%;
-    box-shadow: 0 4px 15px rgba(255, 77, 109, 0.2);
-    transform: rotate(10deg);
-    transition: all 0.3s ease;
+@keyframes moveHeartsLeft {
+    from { background-position: 0 0; }
+    to { background-position: -1000px 0; }
 }
 
-.camera-icon:hover {
-    transform: scale(1.1) rotate(-5deg);
-}
-
+/* --- 2. MAIN CONTAINER (GLASSMORPHISM) --- */
 .container {
     padding: 40px;
     width: 85%;
     max-width: 550px;
-    background: rgba(255, 255, 255, 0.3); /* Lighter glass */
+    background: rgba(255, 255, 255, 0.3);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border-radius: 40px;
     border: 1px solid rgba(255, 255, 255, 0.5);
     box-shadow: 0 20px 60px rgba(255, 182, 193, 0.2);
     text-align: center;
+    position: relative;
+    z-index: 5;
 }
 
 h1 {
@@ -129,6 +104,7 @@ h1 {
     margin-bottom: 30px;
 }
 
+/* --- 3. INTERACTIVE ICONS --- */
 .selection-zone {
     display: flex;
     justify-content: center;
@@ -140,18 +116,132 @@ h1 {
     font-size: 4rem;
     cursor: pointer;
     transition: transform 0.3s ease;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .glow-item:hover { transform: scale(1.2); }
+.glow-item:active { transform: scale(0.85); }
 
+.heart { filter: drop-shadow(0 0 10px #ff4d6d); }
+.hands { filter: drop-shadow(0 0 10px #ffd700); }
+
+/* --- 4. FLOATING ACTION ICONS --- */
+.camera-icon {
+    position: absolute;
+    top: 30px;
+    right: 30px;
+    font-size: 2rem;
+    cursor: pointer;
+    background: white;
+    padding: 10px;
+    border-radius: 50%;
+    box-shadow: 0 4px 15px rgba(255, 77, 109, 0.2);
+    transition: all 0.3s ease;
+    z-index: 10;
+    transform: rotate(10deg);
+}
+
+.camera-icon:hover { transform: scale(1.1) rotate(-5deg); }
+
+.note-btn {
+    display: none; /* Hidden on Home Page */
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    font-size: 2rem;
+    cursor: pointer;
+    background: white;
+    padding: 10px;
+    border-radius: 50%;
+    box-shadow: 0 4px 15px rgba(255, 77, 109, 0.2);
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.note-btn:hover { transform: scale(1.1); }
+
+body.diary-active .note-btn { display: block; }
+
+/* --- 5. STICKY NOTE MODAL --- */
+.note-modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 192, 203, 0.4);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 2000;
+    justify-content: center;
+    align-items: center;
+}
+
+.note-card {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 30px;
+    border-radius: 30px;
+    width: 85%;
+    max-width: 400px;
+    box-shadow: 0 15px 35px rgba(255, 77, 109, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes modalPop {
+    from { opacity: 0; transform: scale(0.8); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.note-header h3 { color: #ff4d6d; margin: 0; }
+.note-header p { color: #ff85a1; font-size: 0.9rem; margin-bottom: 20px; }
+
+#note-text {
+    width: 100%;
+    height: 120px;
+    padding: 15px;
+    border: 2px solid #ffe5ec;
+    border-radius: 15px;
+    outline: none;
+    resize: none;
+    font-family: inherit;
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+
+.note-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+    gap: 10px;
+}
+
+.cancel-btn, .save-note-btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 25px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.cancel-btn { background: #f0f0f0; color: #888; }
+.save-note-btn { background: #ff4d6d; color: white; }
+
+/* --- 6. UTILS --- */
 .creator-tag {
     font-size: 0.7rem;
     color: #ff0000;
     opacity: 0.5;
     letter-spacing: 2px;
+    margin-top: 20px;
 }
 
 @media (max-width: 600px) {
     h1 { font-size: 1.8rem; }
     .camera-icon { top: 15px; right: 15px; font-size: 1.5rem; }
+    .note-btn { bottom: 15px; right: 15px; font-size: 1.5rem; }
 }
