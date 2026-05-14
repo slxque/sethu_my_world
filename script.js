@@ -1,6 +1,6 @@
 /**
  * FOR MY WORLD - Siphosethu's Project
- * Final Integrated Script - Version 6.1 (Data Mapping & Visibility Fix)
+ * Final Integrated Script - Version 6.3 (Timezone & Data Persistence Fix)
  */
 
 // --- 1. GLOBAL CONFIG & STATE ---
@@ -182,11 +182,15 @@ const originalVerses = [
     "Psalm 121:8 - The Lord will watch over your coming and going."
 ];
 
-// --- 3. DATABASE SYNC & UI LOADING ---
+// --- 3. DATABASE SYNC ---
 async function syncFromSupabase() {
     if (!supabaseClient) return;
     try {
-        const { data, error } = await supabaseClient.from(TABLE_NAME).select('*').order('created_at', { ascending: false });
+        const { data, error } = await supabaseClient
+            .from(TABLE_NAME)
+            .select('*')
+            .order('created_at', { ascending: false });
+
         if (error) throw error;
 
         const freshData = {};
@@ -194,18 +198,20 @@ async function syncFromSupabase() {
 
         if (data && data.length > 0) {
             data.forEach(row => {
-                const date = row.created_at ? row.created_at.split('T')[0] : new Date().toISOString().split('T')[0];
-                if (!freshData[date]) freshData[date] = [];
+                // FIXED: Robust date parsing to handle local time consistently
+                const d = new Date(row.created_at);
+                const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
                 
-                // FIXED: Explicitly mapping row.mood_type to i.type for UI logic
-                freshData[date].push({ 
+                if (!freshData[dateKey]) freshData[dateKey] = [];
+                
+                freshData[dateKey].push({ 
                     type: row.mood_type, 
                     caption: row.caption, 
                     url: row.image_url 
                 });
                 
                 if (row.mood_type === 'note') { 
-                    allNotes.push({ text: row.caption, date: date }); 
+                    allNotes.push({ text: row.caption, date: dateKey }); 
                 }
             });
         }
@@ -218,8 +224,7 @@ async function syncFromSupabase() {
             const targetDate = new Date(sharedDate);
             const today = new Date();
             today.setHours(0,0,0,0); targetDate.setHours(0,0,0,0);
-            const diffTime = targetDate - today;
-            viewOffset = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            viewOffset = Math.round((targetDate - today) / (1000 * 60 * 60 * 24));
         }
 
         updateView();
@@ -227,27 +232,11 @@ async function syncFromSupabase() {
     } catch (err) { console.warn("Sync failed:", err.message); }
 }
 
-async function loadStickyInterface() {
-    try {
-        const resp = await fetch('./sticky.html'); 
-        if (!resp.ok) throw new Error("Component not found");
-        const html = await resp.text();
-        
-        if (!document.getElementById('note-modal')) {
-            const div = document.createElement('div');
-            div.innerHTML = html;
-            document.body.appendChild(div);
-        }
-    } catch (e) {
-        console.warn("Sticky UI failed to load. Ensure sticky.html exists.");
-    }
-}
-
 // --- 4. VIEW & NAVIGATION LOGIC ---
 function updateView() {
     const targetDate = new Date();
     targetDate.setDate(targetDate.getDate() + viewOffset);
-    const dateKey = targetDate.toISOString().split('T')[0];
+    const dateKey = `${targetDate.getFullYear()}-${String(targetDate.getMonth() + 1).padStart(2, '0')}-${String(targetDate.getDate()).padStart(2, '0')}`;
     
     const navDateDisplay = document.getElementById('current-nav-date');
     if (navDateDisplay) {
@@ -269,7 +258,7 @@ function renderDayEntries(dateKey) {
 
     const dayItems = dailyUploads[dateKey] || [];
     
-    // FIXED: More robust filter to capture database notes with 'null' as string or object
+    // FIXED: Filter out rows that are effectively empty (NULL in your DB)
     const visibleItems = dayItems.filter(i => 
         (i.caption && i.caption !== "NULL" && i.caption !== "null") || 
         (i.url && i.url !== "NULL" && i.url !== "null")
@@ -278,8 +267,7 @@ function renderDayEntries(dateKey) {
     if (visibleItems.length === 0) {
         container.innerHTML = `
             <div style="color: #ffb6c1; font-style: italic; text-align: center; padding-top: 50px; width: 100%; line-height: 1.8;">
-                No memories logged for ${dateKey.replace(/-/g, '/')} yet...<br>
-                Click the "+" or "📝" to add your first memory.
+                No memories logged yet...
             </div>`;
         return;
     }
@@ -294,40 +282,25 @@ function renderDayEntries(dateKey) {
         <div class="entry-content-wrapper"></div>
     `;
     container.appendChild(entry);
-    const contentWrapper = entry.querySelector('.entry-content-wrapper');
+    const wrapper = entry.querySelector('.entry-content-wrapper');
 
-    // Media Display (Polaroids)
-    const mediaItems = visibleItems.filter(i => i.type === 'image' || i.type === 'video');
-    if (mediaItems.length > 0) {
-        const pile = document.createElement('div');
-        pile.className = 'polaroid-pile';
-        pile.onclick = () => openGrid(dateKey);
-        mediaItems.slice(0, 3).forEach((item, index) => {
+    visibleItems.forEach(item => {
+        if (item.type === 'image' || item.type === 'video') {
             const photo = document.createElement('div');
             photo.className = 'stacked-polaroid';
-            const rot = (index % 2 === 0 ? 1 : -1) * (index * 4);
-            photo.style.transform = `rotate(${rot}deg) translate(${index * 5}px, ${index * 5}px)`;
             photo.innerHTML = `
                 <div class="picture-frame">
                     ${item.type === 'video' ? `<video src="${item.url}" muted loop autoplay></video>` : `<img src="${item.url}">`}
                 </div>
-                <div class="polaroid-footer">${item.caption && item.caption !== "null" ? item.caption : ''}</div>
+                <div class="polaroid-footer">${(item.caption && item.caption !== "null" && item.caption !== "NULL") ? item.caption : ''}</div>
             `;
-            pile.appendChild(photo);
-        });
-        contentWrapper.appendChild(pile);
-    }
-
-    // Text Display
-    // FIXED: Catch all text-based types from your database screenshot
-    const textItems = visibleItems.filter(i => i.type !== 'image' && i.type !== 'video');
-    textItems.forEach(item => {
-        const textBox = document.createElement('div');
-        textBox.className = 'text-entry-box';
-        textBox.style.padding = "15px";
-        textBox.style.marginBottom = "10px";
-        textBox.innerHTML = `<p style="color: #ff4d6d; font-family: 'Georgia', serif; line-height: 1.6; margin: 0;">${item.caption}</p>`;
-        contentWrapper.appendChild(textBox);
+            wrapper.appendChild(photo);
+        } else {
+            const textBox = document.createElement('div');
+            textBox.className = 'text-entry-box';
+            textBox.innerHTML = `<p style="color: #ff4d6d; font-family: 'Georgia', serif;">${item.caption}</p>`;
+            wrapper.appendChild(textBox);
+        }
     });
 }
 
@@ -349,7 +322,7 @@ async function showItem(type) {
     if (supabaseClient) {
         try {
             await supabaseClient.from(TABLE_NAME).insert([{ mood_type: type, caption: selectedText }]);
-            syncFromSupabase(); // Added sync after insert to update view immediately
+            syncFromSupabase();
         } catch (err) { console.error("Database log failed:", err.message); }
     }
 }
@@ -403,45 +376,20 @@ async function handleUpload(event) {
     }
 }
 
-// --- 9. MODALS & GALLERIES ---
-function openGrid(dateKey) {
-    const modal = document.getElementById('gallery-modal');
-    const content = modal.querySelector('.modal-content');
-    content.innerHTML = '';
-    dailyUploads[dateKey].filter(i => i.url && i.url !== "null").forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'gallery-item';
-        div.innerHTML = `${item.type === 'video' ? `<video src="${item.url}"></video>` : `<img src="${item.url}">`}`;
-        div.onclick = () => openFullScreen(item.url, item.type, item.caption);
-        content.appendChild(div);
-    });
-    modal.style.display = 'flex';
-}
-
-function openFullScreen(url, type, caption) {
-    const viewer = document.getElementById('full-screen-viewer');
-    const container = document.getElementById('viewer-media');
-    container.innerHTML = `<div class="media-wrapper">${type === 'video' ? `<video src="${url}" controls autoplay></video>` : `<img src="${url}">`}<div class="caption-strip">${caption || ''}</div></div>`;
-    viewer.style.display = 'flex';
-}
-
 // --- 10. INITIALIZATION ---
 document.addEventListener('DOMContentLoaded', () => {
-    loadStickyInterface(); 
+    // Standard initialization
     syncFromSupabase();
 });
 
 // Globals for HTML triggers
 window.showItem = showItem; 
 window.handleUpload = handleUpload; 
-window.openGrid = openGrid;
-window.openFullScreen = openFullScreen; 
 window.closeFullScreen = () => document.getElementById('full-screen-viewer').style.display = 'none';
 window.closeGrid = () => document.getElementById('gallery-modal').style.display = 'none';
 window.triggerUpload = (e) => { if (e) e.stopPropagation(); document.getElementById('file-input').click(); };
 window.openNoteModal = () => {
     const modal = document.getElementById('note-modal');
     if(modal) modal.style.display = 'flex';
-    else console.warn("Note modal ID not found.");
 };
 window.closeNoteModal = () => document.getElementById('note-modal').style.display = 'none';
