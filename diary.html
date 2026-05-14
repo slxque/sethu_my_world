@@ -3,11 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mobile-web-app-capable" content="yes"><!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -32,71 +27,10 @@
 </head>
 <body>
 
-<div class="back-btn" onclick="window.location.href='index.html'">⬅️ Back</div>
-<div class="add-btn" onclick="triggerUpload(event)">+</div>
-<div class="calendar-btn" onclick="window.location.href='calendar.html'" title="Open Calendar">📅</div>
-
-<div class="book-container">
-    <div id="diary-container" class="writing-surface">
-        <div id="placeholder-text" class="placeholder">Loading your memories...</div>
-    </div>
-</div>
-
-<div class="sticky-icon" onclick="openNoteModal()" style="position: fixed; right: 20px; bottom: 100px; z-index: 100; font-size: 2rem; cursor: pointer;">📝</div>
-
-<div id="note-modal" class="modal-overlay" style="display: none;">
-    <div class="modal-content" style="display: flex; flex-direction: column; gap: 10px;">
-        <h3 style="color: #ff4d6d; margin: 0;">Write a Note</h3>
-        <textarea id="note-text" placeholder="Type here..." style="width: 100%; height: 100px; border: 1px solid #ffb6c1; border-radius: 8px; padding: 10px;"></textarea>
-        <div style="display: flex; justify-content: flex-end; gap: 10px;">
-            <button onclick="closeNoteModal()" style="background: #eee; border: none; padding: 8px 15px; border-radius: 5px;">Cancel</button>
-            <button onclick="saveStickyNote()" style="background: #ff4d6d; color: white; border: none; padding: 8px 15px; border-radius: 5px;">Save</button>
-        </div>
-    </div>
-</div>
-
-<div class="diary-nav">
-    <div class="nav-arrow" onclick="changeDay(-1)">⬅️</div>
-    <div id="current-nav-date" class="nav-date">Today</div>
-    <div id="next-day" class="nav-arrow" onclick="changeDay(1)" style="visibility: hidden;">➡️</div>
-</div>
-
-<input type="file" id="file-input" style="display: none;" accept="image/*,video/*" multiple onchange="handleUpload(event)">
-
-<script src="script.js"></script>
-
-</body>
-</html>
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#ffb6c1">
-
-    <title>Our Digital Diary 📖✨</title>
-
-    <link rel="icon" type="image/png" href="icon.png.png">
-    <link rel="apple-touch-icon" href="icon.png.png">
-
-    <link rel="stylesheet" href="diary-style.css">
-    <link rel="stylesheet" href="sticky.css">
-
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <link rel="manifest" href="manifest.json">
-
-    <script>
-        if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.register('sw.js');
-        }
-    </script>
-</head>
-<body>
-
 <div class="top-nav">
     <div class="back-btn" onclick="window.location.href='index.html'">⬅️ Back</div>
     <div class="header-right">
-        <div class="calendar-btn" onclick="window.location.href='calendar.html'" title="Open Calendar">
-            <img src="calendar_icon.png" alt="Calendar" id="calendar-img">
-        </div>
+        <div class="calendar-btn" onclick="window.location.href='calendar.html'" title="Open Calendar">📅</div>
         <div class="add-btn" onclick="triggerUpload(event)">+</div>
     </div>
 </div>
@@ -109,39 +43,24 @@
 
 <div class="sticky-icon" onclick="openNoteModal()">📝</div>
 
-<div id="note-modal" class="modal-overlay" style="display: none;">
-    <div class="modal-content note-input-card">
-        <h3>Write a Note</h3>
+<div id="note-modal" class="modal-overlay">
+    <div class="modal-content">
+        <h3 class="modal-title">Write a Note</h3>
         <textarea id="note-text" placeholder="What's on your mind?"></textarea>
         <div class="modal-actions">
-            <button onclick="closeNoteModal()">Cancel</button>
-            <button onclick="saveStickyNote()" class="save-btn">Save</button>
+            <button class="cancel-btn" onclick="closeNoteModal()">Cancel</button>
+            <button class="save-btn" onclick="saveStickyNote()">Save</button>
         </div>
     </div>
 </div>
 
-<div id="gallery-modal" class="modal-overlay" onclick="closeGrid()">
-    <div class="close-x" onclick="closeGrid()">&times;</div>
-    <div class="modal-content" onclick="event.stopPropagation()">
-        <div id="gallery-grid" class="gallery-grid"></div>
-    </div>
+<div class="diary-nav">
+    <div class="nav-arrow" onclick="changeDay(-1)">⬅️</div>
+    <div id="current-nav-date" class="nav-date">Today</div>
+    <div id="next-day" class="nav-arrow" onclick="changeDay(1)">➡️</div>
 </div>
 
-<div class="diary-nav-footer">
-    <div class="nav-arrow" id="prev-day" onclick="changeDay(-1)">
-        <img src="left-arrow.png" alt="Back">
-    </div>
-    
-    <div class="nav-center">
-        <span id="current-view-date" class="today-label">Today</span>
-    </div>
-
-    <div class="nav-arrow" id="next-day" onclick="changeDay(1)">
-        <img src="right-arrow.png" alt="Forward">
-    </div>
-</div>
-
-<input type="file" id="file-input" style="display: none;" accept="image/*,video/*" multiple onchange="handleUpload(event)">
+<input type="file" id="file-input" accept="image/*,video/*" multiple onchange="handleUpload(event)">
 
 <script src="script.js"></script>
 
