@@ -1,6 +1,6 @@
 /**
  * FOR MY WORLD - Siphosethu's Project
- * Final Integrated Script - Version 6.0 (Button & Placeholder Fix)
+ * Final Integrated Script - Version 6.1 (Data Mapping & Visibility Fix)
  */
 
 // --- 1. GLOBAL CONFIG & STATE ---
@@ -76,8 +76,7 @@ const originalCompliments = [
     "You are the most beautiful person I know, inside and out.",
     "I’m always in your corner, no matter what.",
     "You are simply unforgettable.",
-    "I love your 'never-give-up' attitude.",
-    "Just a little something to match your smile. You've been on my mind all day."
+    "I love your 'never-give-up' attitude."
 ];
 
 const originalVerses = [
@@ -197,8 +196,17 @@ async function syncFromSupabase() {
             data.forEach(row => {
                 const date = row.created_at ? row.created_at.split('T')[0] : new Date().toISOString().split('T')[0];
                 if (!freshData[date]) freshData[date] = [];
-                freshData[date].push({ type: row.mood_type, caption: row.caption, url: row.image_url });
-                if (row.mood_type === 'note') { allNotes.push({ text: row.caption, date: date }); }
+                
+                // FIXED: Explicitly mapping row.mood_type to i.type for UI logic
+                freshData[date].push({ 
+                    type: row.mood_type, 
+                    caption: row.caption, 
+                    url: row.image_url 
+                });
+                
+                if (row.mood_type === 'note') { 
+                    allNotes.push({ text: row.caption, date: date }); 
+                }
             });
         }
         dailyUploads = freshData;
@@ -219,21 +227,19 @@ async function syncFromSupabase() {
     } catch (err) { console.warn("Sync failed:", err.message); }
 }
 
-// Logic to load the note button from sticky.html
 async function loadStickyInterface() {
     try {
         const resp = await fetch('./sticky.html'); 
         if (!resp.ok) throw new Error("Component not found");
         const html = await resp.text();
         
-        // Only inject if it doesn't already exist
         if (!document.getElementById('note-modal')) {
             const div = document.createElement('div');
             div.innerHTML = html;
             document.body.appendChild(div);
         }
     } catch (e) {
-        console.warn("Sticky UI failed to load from file. Ensure sticky.html exists.");
+        console.warn("Sticky UI failed to load. Ensure sticky.html exists.");
     }
 }
 
@@ -262,13 +268,17 @@ function renderDayEntries(dateKey) {
     container.innerHTML = '';
 
     const dayItems = dailyUploads[dateKey] || [];
-    const visibleItems = dayItems.filter(i => i.caption || i.url);
+    
+    // FIXED: More robust filter to capture database notes with 'null' as string or object
+    const visibleItems = dayItems.filter(i => 
+        (i.caption && i.caption !== "NULL" && i.caption !== "null") || 
+        (i.url && i.url !== "NULL" && i.url !== "null")
+    );
 
-    // NEW PLACEHOLDER LOGIC
     if (visibleItems.length === 0) {
         container.innerHTML = `
             <div style="color: #ffb6c1; font-style: italic; text-align: center; padding-top: 50px; width: 100%; line-height: 1.8;">
-                No memories logged yet...<br>
+                No memories logged for ${dateKey.replace(/-/g, '/')} yet...<br>
                 Click the "+" or "📝" to add your first memory.
             </div>`;
         return;
@@ -301,7 +311,7 @@ function renderDayEntries(dateKey) {
                 <div class="picture-frame">
                     ${item.type === 'video' ? `<video src="${item.url}" muted loop autoplay></video>` : `<img src="${item.url}">`}
                 </div>
-                <div class="polaroid-footer">${item.caption || ''}</div>
+                <div class="polaroid-footer">${item.caption && item.caption !== "null" ? item.caption : ''}</div>
             `;
             pile.appendChild(photo);
         });
@@ -309,6 +319,7 @@ function renderDayEntries(dateKey) {
     }
 
     // Text Display
+    // FIXED: Catch all text-based types from your database screenshot
     const textItems = visibleItems.filter(i => i.type !== 'image' && i.type !== 'video');
     textItems.forEach(item => {
         const textBox = document.createElement('div');
@@ -338,6 +349,7 @@ async function showItem(type) {
     if (supabaseClient) {
         try {
             await supabaseClient.from(TABLE_NAME).insert([{ mood_type: type, caption: selectedText }]);
+            syncFromSupabase(); // Added sync after insert to update view immediately
         } catch (err) { console.error("Database log failed:", err.message); }
     }
 }
@@ -415,7 +427,7 @@ function openFullScreen(url, type, caption) {
 
 // --- 10. INITIALIZATION ---
 document.addEventListener('DOMContentLoaded', () => {
-    loadStickyInterface(); // Fetch the button from sticky.html
+    loadStickyInterface(); 
     syncFromSupabase();
 });
 
@@ -430,6 +442,6 @@ window.triggerUpload = (e) => { if (e) e.stopPropagation(); document.getElementB
 window.openNoteModal = () => {
     const modal = document.getElementById('note-modal');
     if(modal) modal.style.display = 'flex';
-    else console.warn("Note modal ID not found. Ensure sticky.html loaded.");
+    else console.warn("Note modal ID not found.");
 };
 window.closeNoteModal = () => document.getElementById('note-modal').style.display = 'none';
