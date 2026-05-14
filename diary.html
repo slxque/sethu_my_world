@@ -10,8 +10,8 @@
 
     <title>Our Digital Diary 📖✨</title>
 
-    <link rel="icon" type="image/png" href="icon.png">
-    <link rel="apple-touch-icon" href="icon.png">
+    <link rel="icon" type="image/png" href="icon.png.png">
+    <link rel="apple-touch-icon" href="icon.png.png">
 
     <link rel="stylesheet" href="diary-style.css">
     <link rel="stylesheet" href="sticky.css">
@@ -29,6 +29,7 @@
 
 <div class="back-btn" onclick="window.location.href='index.html'">⬅️ Back</div>
 <div class="add-btn" onclick="triggerUpload(event)">+</div>
+<div class="calendar-btn" onclick="window.location.href='calendar.html'" title="Open Calendar">📅</div>
 
 <div class="book-container">
     <div id="diary-container" class="writing-surface">
@@ -47,6 +48,12 @@
     <div class="close-x" onclick="closeFullScreen()">&times;</div>
     <div id="viewer-media" onclick="event.stopPropagation()">
     </div>
+</div>
+
+<div class="diary-nav">
+    <div class="nav-arrow" onclick="changeDay(-1)">⬅️</div>
+    <div id="current-view-date" class="nav-date">Today</div>
+    <div id="next-day" class="nav-arrow" onclick="changeDay(1)" style="visibility: hidden;">➡️</div>
 </div>
 
 <input type="file" id="file-input" style="display: none;" accept="image/*,video/*" multiple onchange="handleUpload(event)">
