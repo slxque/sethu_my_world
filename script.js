@@ -1,6 +1,6 @@
 /**
  * FOR MY WORLD - Siphosethu's Project
- * Final Integrated Script - Version 6.4 (Full Navigation & Sync Fix)
+ * Final Integrated Script - Version 6.5 (Centering & Nav Fix)
  */
 
 // --- 1. GLOBAL CONFIG & STATE ---
@@ -198,7 +198,6 @@ async function syncFromSupabase() {
 
         if (data && data.length > 0) {
             data.forEach(row => {
-                // FIXED: Robust date parsing to handle local time consistently
                 const d = new Date(row.created_at);
                 const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
                 
@@ -217,7 +216,7 @@ async function syncFromSupabase() {
         }
         dailyUploads = freshData;
 
-        // Check for Calendar Date selection via URL
+        // URL logic for calendar selection
         const urlParams = new URLSearchParams(window.location.search);
         const sharedDate = urlParams.get('date');
         if (sharedDate) {
@@ -238,35 +237,33 @@ function updateView() {
     targetDate.setDate(targetDate.getDate() + viewOffset);
     const dateKey = `${targetDate.getFullYear()}-${String(targetDate.getMonth() + 1).padStart(2, '0')}-${String(targetDate.getDate()).padStart(2, '0')}`;
     
-    // Update the "Today" text and Navigation header
-    const navDateDisplay = document.getElementById('current-nav-date');
-    if (navDateDisplay) {
-        navDateDisplay.innerText = targetDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+    // Update Nav bar date
+    const navDate = document.getElementById('current-nav-date');
+    if (navDate) {
+        navDate.innerText = viewOffset === 0 ? "Today" : targetDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
     }
-    
-    const footerLabel = document.querySelector('.today-label'); // Ensure you have this class in HTML
-    if (footerLabel) {
-        footerLabel.innerText = viewOffset === 0 ? "Today" : targetDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+
+    // Right Arrow logic: Hide if viewing today or the future
+    const nextBtn = document.getElementById('next-day');
+    if (nextBtn) {
+        nextBtn.style.visibility = (viewOffset >= 0) ? "hidden" : "visible";
     }
 
     renderDayEntries(dateKey);
 }
 
-// Navigation Triggers
 window.changeDay = (direction) => {
     viewOffset += direction;
     updateView();
 };
 
-// --- 5. UI RENDERING (DIARY LIST) ---
+// --- 5. UI RENDERING (CENTERED CONTENT) ---
 function renderDayEntries(dateKey) {
     const container = document.getElementById('diary-container');
     if (!container) return;
     container.innerHTML = '';
 
     const dayItems = dailyUploads[dateKey] || [];
-    
-    // Filter out effectively empty rows
     const visibleItems = dayItems.filter(i => 
         (i.caption && i.caption !== "NULL" && i.caption !== "null") || 
         (i.url && i.url !== "NULL" && i.url !== "null")
@@ -274,68 +271,50 @@ function renderDayEntries(dateKey) {
 
     if (visibleItems.length === 0) {
         container.innerHTML = `
-            <div style="color: #ffb6c1; font-style: italic; text-align: center; padding-top: 50px; width: 100%; line-height: 1.8;">
-                No memories logged for ${dateKey.replace(/-/g, '/')} yet...<br>
-                Click the "+" or "📝" to add your first memory.
+            <div style="color: #ffb6c1; font-style: italic; text-align: center; padding-top: 50px; width: 100%;">
+                No memories logged for ${dateKey.replace(/-/g, '/')} yet...
             </div>`;
         return;
     }
 
     const entry = document.createElement('div');
     entry.className = 'diary-entry';
-    entry.innerHTML = `
+    
+    // Header for the day
+    let contentHtml = `
         <div class="entry-header">
             <div class="date-main">${dateKey.replace(/-/g, '/')}</div>
             <div class="dear-diary">Dear diary,</div>
         </div>
-        <div class="entry-content-wrapper"></div>
-    `;
-    container.appendChild(entry);
-    const contentWrapper = entry.querySelector('.entry-content-wrapper');
+        <div class="media-stack" style="display: flex; flex-direction: column; align-items: center; gap: 30px;">`;
 
     visibleItems.forEach(item => {
         if (item.type === 'image' || item.type === 'video') {
-            const photo = document.createElement('div');
-            photo.className = 'stacked-polaroid';
-            photo.innerHTML = `
-                <div class="picture-frame">
-                    ${item.type === 'video' ? `<video src="${item.url}" muted loop autoplay></video>` : `<img src="${item.url}">`}
-                </div>
-                <div class="polaroid-footer">${(item.caption && item.caption !== "null") ? item.caption : ''}</div>
-            `;
-            contentWrapper.appendChild(photo);
+            // Centers the image
+            contentHtml += `
+                <div class="centered-polaroid" style="background: white; padding: 15px 15px 40px 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 85%; max-width: 400px;">
+                    <div class="picture-frame">
+                        ${item.type === 'video' ? `<video src="${item.url}" muted loop autoplay style="width: 100%;"></video>` : `<img src="${item.url}" style="width: 100%;">`}
+                    </div>
+                    <div class="polaroid-footer" style="text-align: center; margin-top: 10px; color: #ffb6c1; font-family: 'Georgia', serif;">
+                        ${(item.caption && item.caption !== "null") ? item.caption : ''}
+                    </div>
+                </div>`;
         } else {
-            const textBox = document.createElement('div');
-            textBox.className = 'text-entry-box';
-            textBox.innerHTML = `<p style="color: #ff4d6d; font-family: 'Georgia', serif;">${item.caption}</p>`;
-            contentWrapper.appendChild(textBox);
+            // Letter note under the image
+            contentHtml += `
+                <div class="letter-note" style="background: transparent; width: 100%; padding: 10px 0;">
+                    <p style="color: #ff4d6d; font-family: 'Georgia', serif; font-size: 1.1rem; line-height: 35px;">${item.caption}</p>
+                </div>`;
         }
     });
+
+    contentHtml += `</div>`;
+    entry.innerHTML = contentHtml;
+    container.appendChild(entry);
 }
 
 // --- 6. ACTIONS & UPLOADS ---
-async function showItem(type) {
-    const displayElement = document.getElementById('display-text');
-    if (!displayElement) return;
-
-    let selectedArray = (type === 'compliment') ? originalCompliments : originalVerses;
-    const randomIndex = Math.floor(Math.random() * selectedArray.length);
-    const selectedText = selectedArray[randomIndex];
-
-    displayElement.style.opacity = 0;
-    setTimeout(() => {
-        displayElement.innerText = selectedText;
-        displayElement.style.opacity = 1;
-    }, 150);
-
-    if (supabaseClient) {
-        try {
-            await supabaseClient.from(TABLE_NAME).insert([{ mood_type: type, caption: selectedText }]);
-            syncFromSupabase();
-        } catch (err) { console.error("Database log failed:", err.message); }
-    }
-}
-
 window.saveStickyNote = async () => {
     const textInput = document.getElementById('note-text');
     if (!textInput || !textInput.value.trim()) return;
@@ -389,8 +368,7 @@ document.addEventListener('DOMContentLoaded', () => {
     syncFromSupabase();
 });
 
-// Global Triggers for HTML Buttons
-window.showItem = showItem; 
+// Global Triggers
 window.handleUpload = handleUpload; 
 window.openNoteModal = () => { document.getElementById('note-modal').style.display = 'flex'; };
 window.closeNoteModal = () => { document.getElementById('note-modal').style.display = 'none'; };
