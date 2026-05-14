@@ -61,6 +61,25 @@
     </div>
 </div>
 
+<div id="gallery-modal" class="note-modal-overlay" onclick="closeGallery()">
+    <div class="gallery-card" onclick="event.stopPropagation()">
+        <div class="gallery-header">
+            <h3 id="gallery-title">Memories</h3>
+            <span class="close-gallery" onclick="closeGallery()">&times;</span>
+        </div>
+        <div id="gallery-grid" class="grid-container">
+            </div>
+    </div>
+</div>
+
+<div id="fullscreen-viewer" class="fullscreen-overlay" onclick="closeFullscreen()">
+    <div class="fullscreen-content">
+        <img id="fullscreen-img" src="" style="display: none;">
+        <video id="fullscreen-vid" controls style="display: none;"></video>
+        <div id="fullscreen-caption" class="polaroid-footer"></div>
+    </div>
+</div>
+
 <div class="diary-nav">
     <div class="nav-arrow" id="prev-day" onclick="changeDay(-1)">⬅️</div>
     <div id="current-nav-date" class="nav-date">Today</div>
