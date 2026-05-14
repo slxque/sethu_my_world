@@ -1,6 +1,6 @@
 /**
  * FOR MY WORLD - Siphosethu's Project
- * Final Integrated Script - Version 6.3 (Timezone & Data Persistence Fix)
+ * Final Integrated Script - Version 6.4 (Full Navigation & Sync Fix)
  */
 
 // --- 1. GLOBAL CONFIG & STATE ---
@@ -238,13 +238,21 @@ function updateView() {
     targetDate.setDate(targetDate.getDate() + viewOffset);
     const dateKey = `${targetDate.getFullYear()}-${String(targetDate.getMonth() + 1).padStart(2, '0')}-${String(targetDate.getDate()).padStart(2, '0')}`;
     
+    // Update the "Today" text and Navigation header
     const navDateDisplay = document.getElementById('current-nav-date');
     if (navDateDisplay) {
         navDateDisplay.innerText = targetDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
     }
+    
+    const footerLabel = document.querySelector('.today-label'); // Ensure you have this class in HTML
+    if (footerLabel) {
+        footerLabel.innerText = viewOffset === 0 ? "Today" : targetDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+    }
+
     renderDayEntries(dateKey);
 }
 
+// Navigation Triggers
 window.changeDay = (direction) => {
     viewOffset += direction;
     updateView();
@@ -258,7 +266,7 @@ function renderDayEntries(dateKey) {
 
     const dayItems = dailyUploads[dateKey] || [];
     
-    // FIXED: Filter out rows that are effectively empty (NULL in your DB)
+    // Filter out effectively empty rows
     const visibleItems = dayItems.filter(i => 
         (i.caption && i.caption !== "NULL" && i.caption !== "null") || 
         (i.url && i.url !== "NULL" && i.url !== "null")
@@ -267,7 +275,8 @@ function renderDayEntries(dateKey) {
     if (visibleItems.length === 0) {
         container.innerHTML = `
             <div style="color: #ffb6c1; font-style: italic; text-align: center; padding-top: 50px; width: 100%; line-height: 1.8;">
-                No memories logged yet...
+                No memories logged for ${dateKey.replace(/-/g, '/')} yet...<br>
+                Click the "+" or "📝" to add your first memory.
             </div>`;
         return;
     }
@@ -282,7 +291,7 @@ function renderDayEntries(dateKey) {
         <div class="entry-content-wrapper"></div>
     `;
     container.appendChild(entry);
-    const wrapper = entry.querySelector('.entry-content-wrapper');
+    const contentWrapper = entry.querySelector('.entry-content-wrapper');
 
     visibleItems.forEach(item => {
         if (item.type === 'image' || item.type === 'video') {
@@ -292,19 +301,19 @@ function renderDayEntries(dateKey) {
                 <div class="picture-frame">
                     ${item.type === 'video' ? `<video src="${item.url}" muted loop autoplay></video>` : `<img src="${item.url}">`}
                 </div>
-                <div class="polaroid-footer">${(item.caption && item.caption !== "null" && item.caption !== "NULL") ? item.caption : ''}</div>
+                <div class="polaroid-footer">${(item.caption && item.caption !== "null") ? item.caption : ''}</div>
             `;
-            wrapper.appendChild(photo);
+            contentWrapper.appendChild(photo);
         } else {
             const textBox = document.createElement('div');
             textBox.className = 'text-entry-box';
             textBox.innerHTML = `<p style="color: #ff4d6d; font-family: 'Georgia', serif;">${item.caption}</p>`;
-            wrapper.appendChild(textBox);
+            contentWrapper.appendChild(textBox);
         }
     });
 }
 
-// --- 6. HOMEPAGE ACTIONS ---
+// --- 6. ACTIONS & UPLOADS ---
 async function showItem(type) {
     const displayElement = document.getElementById('display-text');
     if (!displayElement) return;
@@ -327,35 +336,18 @@ async function showItem(type) {
     }
 }
 
-// --- 7. STICKY NOTE PILE LOGIC ---
-function renderNotePile() {
-    const container = document.getElementById('sticky-pile-container');
-    if (!container || allNotes.length === 0) return;
-    container.innerHTML = '';
-    const layers = Math.min(allNotes.length, 3);
-    for (let i = 0; i < layers; i++) {
-        const noteEl = document.createElement('div');
-        noteEl.className = 'stacked-note';
-        const rotation = (i * 3) - 3;
-        noteEl.style.transform = `rotate(${rotation}deg) translate(${i * 2}px, ${i * 2}px)`;
-        if (i === 0) noteEl.innerHTML = `<p>${allNotes[0].text}</p>`;
-        container.appendChild(noteEl);
-    }
-}
-
 window.saveStickyNote = async () => {
     const textInput = document.getElementById('note-text');
     if (!textInput || !textInput.value.trim()) return;
     const text = textInput.value;
     try {
-        await supabaseClient.from(TABLE_NAME).insert([{ mood_type: 'note', caption: text, image_url: null }]);
-        closeNoteModal();
+        await supabaseClient.from(TABLE_NAME).insert([{ mood_type: 'note', caption: text }]);
+        window.closeNoteModal();
         textInput.value = '';
         syncFromSupabase();
     } catch (err) { console.error("Save failed:", err.message); }
 };
 
-// --- 8. UPLOAD LOGIC ---
 async function handleUpload(event) {
     const files = event.target.files;
     if (!files || !files.length || !supabaseClient) return;
@@ -376,20 +368,30 @@ async function handleUpload(event) {
     }
 }
 
-// --- 10. INITIALIZATION ---
+// --- 7. STICKY PILE ---
+function renderNotePile() {
+    const container = document.getElementById('sticky-pile-container');
+    if (!container || allNotes.length === 0) return;
+    container.innerHTML = '';
+    const layers = Math.min(allNotes.length, 3);
+    for (let i = 0; i < layers; i++) {
+        const noteEl = document.createElement('div');
+        noteEl.className = 'stacked-note';
+        const rotation = (i * 3) - 3;
+        noteEl.style.transform = `rotate(${rotation}deg) translate(${i * 2}px, ${i * 2}px)`;
+        if (i === 0) noteEl.innerHTML = `<p>${allNotes[0].text}</p>`;
+        container.appendChild(noteEl);
+    }
+}
+
+// --- 8. INITIALIZATION ---
 document.addEventListener('DOMContentLoaded', () => {
-    // Standard initialization
     syncFromSupabase();
 });
 
-// Globals for HTML triggers
+// Global Triggers for HTML Buttons
 window.showItem = showItem; 
 window.handleUpload = handleUpload; 
-window.closeFullScreen = () => document.getElementById('full-screen-viewer').style.display = 'none';
-window.closeGrid = () => document.getElementById('gallery-modal').style.display = 'none';
+window.openNoteModal = () => { document.getElementById('note-modal').style.display = 'flex'; };
+window.closeNoteModal = () => { document.getElementById('note-modal').style.display = 'none'; };
 window.triggerUpload = (e) => { if (e) e.stopPropagation(); document.getElementById('file-input').click(); };
-window.openNoteModal = () => {
-    const modal = document.getElementById('note-modal');
-    if(modal) modal.style.display = 'flex';
-};
-window.closeNoteModal = () => document.getElementById('note-modal').style.display = 'none';
