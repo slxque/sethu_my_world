@@ -1,6 +1,6 @@
 /**
  * FOR MY WORLD - Siphosethu's Project
- * Final Integrated Script - Version 5.0 (Full Data Recovery)
+ * Final Integrated Script - Version 6.0 (Button & Placeholder Fix)
  */
 
 // --- 1. GLOBAL CONFIG & STATE ---
@@ -183,7 +183,7 @@ const originalVerses = [
     "Psalm 121:8 - The Lord will watch over your coming and going."
 ];
 
-// --- 3. DATABASE SYNC ---
+// --- 3. DATABASE SYNC & UI LOADING ---
 async function syncFromSupabase() {
     if (!supabaseClient) return;
     try {
@@ -219,6 +219,24 @@ async function syncFromSupabase() {
     } catch (err) { console.warn("Sync failed:", err.message); }
 }
 
+// Logic to load the note button from sticky.html
+async function loadStickyInterface() {
+    try {
+        const resp = await fetch('./sticky.html'); 
+        if (!resp.ok) throw new Error("Component not found");
+        const html = await resp.text();
+        
+        // Only inject if it doesn't already exist
+        if (!document.getElementById('note-modal')) {
+            const div = document.createElement('div');
+            div.innerHTML = html;
+            document.body.appendChild(div);
+        }
+    } catch (e) {
+        console.warn("Sticky UI failed to load from file. Ensure sticky.html exists.");
+    }
+}
+
 // --- 4. VIEW & NAVIGATION LOGIC ---
 function updateView() {
     const targetDate = new Date();
@@ -246,8 +264,13 @@ function renderDayEntries(dateKey) {
     const dayItems = dailyUploads[dateKey] || [];
     const visibleItems = dayItems.filter(i => i.caption || i.url);
 
+    // NEW PLACEHOLDER LOGIC
     if (visibleItems.length === 0) {
-        container.innerHTML = `<div style="color: #ffb6c1; font-style: italic; text-align: center; padding-top: 50px; width: 100%;">No memories logged yet...</div>`;
+        container.innerHTML = `
+            <div style="color: #ffb6c1; font-style: italic; text-align: center; padding-top: 50px; width: 100%; line-height: 1.8;">
+                No memories logged yet...<br>
+                Click the "+" or "📝" to add your first memory.
+            </div>`;
         return;
     }
 
@@ -285,7 +308,7 @@ function renderDayEntries(dateKey) {
         contentWrapper.appendChild(pile);
     }
 
-    // Text Display (Fix for Visibility - Notes/Verses/Compliments)
+    // Text Display
     const textItems = visibleItems.filter(i => i.type !== 'image' && i.type !== 'video');
     textItems.forEach(item => {
         const textBox = document.createElement('div');
@@ -391,7 +414,10 @@ function openFullScreen(url, type, caption) {
 }
 
 // --- 10. INITIALIZATION ---
-document.addEventListener('DOMContentLoaded', syncFromSupabase);
+document.addEventListener('DOMContentLoaded', () => {
+    loadStickyInterface(); // Fetch the button from sticky.html
+    syncFromSupabase();
+});
 
 // Globals for HTML triggers
 window.showItem = showItem; 
@@ -401,5 +427,9 @@ window.openFullScreen = openFullScreen;
 window.closeFullScreen = () => document.getElementById('full-screen-viewer').style.display = 'none';
 window.closeGrid = () => document.getElementById('gallery-modal').style.display = 'none';
 window.triggerUpload = (e) => { if (e) e.stopPropagation(); document.getElementById('file-input').click(); };
-window.openNoteModal = () => document.getElementById('note-modal').style.display = 'flex';
+window.openNoteModal = () => {
+    const modal = document.getElementById('note-modal');
+    if(modal) modal.style.display = 'flex';
+    else console.warn("Note modal ID not found. Ensure sticky.html loaded.");
+};
 window.closeNoteModal = () => document.getElementById('note-modal').style.display = 'none';
