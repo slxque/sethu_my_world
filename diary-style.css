@@ -28,16 +28,14 @@ body::before {
 .writing-surface {
     position: relative;
     padding-left: 80px;
-    padding-top: 60px;
-    /* Bottom padding prevents the nav bar from hiding the last entry */
+    padding-top: 80px; /* Increased to avoid overlapping top buttons */
     padding-bottom: 150px; 
     z-index: 2;
-    width: calc(100% - 100px);
 }
 
-/* --- 2. DIARY ENTRIES --- */
+/* --- 2. DIARY ENTRIES & CENTERING --- */
 .diary-entry {
-    margin-bottom: 50px;
+    margin-bottom: 60px;
     display: flex;
     flex-direction: column;
 }
@@ -46,47 +44,39 @@ body::before {
     color: #ff4d6d;
     font-family: 'Georgia', serif;
     line-height: 35px;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
 }
 
 .date-main { font-weight: bold; font-size: 1.2rem; }
 .dear-diary { font-style: italic; }
 
-.entry-content-wrapper {
+/* The stack that centers your media and notes */
+.media-stack {
     display: flex;
     flex-direction: column;
-    gap: 25px;
+    align-items: center; /* Centers items horizontally */
+    width: 100%;
+    gap: 30px;
 }
 
-/* Styling for the text notes logged in the DB */
-.text-entry-box {
-    line-height: 35px;
-    font-size: 1.1rem;
-    color: #ff4d6d;
-    font-family: 'Georgia', serif;
-    word-wrap: break-word;
-}
-
-/* Polaroid-style photo frames */
-.stacked-polaroid {
+/* Polaroid-style photo frames (Centered) */
+.centered-polaroid {
     background: white;
-    padding: 10px 10px 35px 10px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    width: 260px;
-    border: 1px solid #f0f0f0;
-    transform: rotate(-2deg);
-    margin: 10px 0;
+    padding: 15px 15px 40px 15px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    width: 85%;
+    max-width: 380px;
+    border: 1px solid #eee;
+    transform: rotate(1deg);
     transition: transform 0.3s ease;
 }
 
-.stacked-polaroid:hover {
+.centered-polaroid:hover {
     transform: rotate(0deg) scale(1.02);
 }
 
 .picture-frame {
     width: 100%;
-    height: auto;
-    overflow: hidden;
     background: #fafafa;
 }
 
@@ -100,37 +90,56 @@ body::before {
 .polaroid-footer {
     text-align: center;
     font-family: 'Georgia', serif;
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     color: #ffb6c1;
-    margin-top: 10px;
+    margin-top: 15px;
+}
+
+/* Styling for the letter/note under the image */
+.letter-note {
+    width: 100%;
+    max-width: 500px;
+    padding: 10px 0;
+}
+
+.letter-note p {
+    color: #ff4d6d;
+    font-family: 'Georgia', serif;
+    font-size: 1.1rem;
+    line-height: 35px; /* Matches the notebook lines */
+    margin: 0;
+    word-wrap: break-word;
 }
 
 /* --- 3. TOP NAVIGATION BUTTONS --- */
 .back-btn {
     position: fixed; top: 15px; left: 10px; z-index: 100;
     font-size: 0.9rem; cursor: pointer; background: #fff;
-    padding: 5px 12px; border-radius: 8px; color: #ff4d6d;
+    padding: 8px 15px; border-radius: 20px; color: #ff4d6d;
     font-weight: bold; border: 1px solid #ffe5ec;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.header-right {
+    position: fixed; top: 15px; right: 15px; z-index: 100;
+    display: flex; gap: 10px;
 }
 
 .add-btn {
-    position: fixed; top: 15px; right: 15px; z-index: 100;
     width: 45px; height: 45px; background: #ff4d6d;
     color: white; border-radius: 50%;
     display: flex; justify-content: center; align-items: center;
-    font-size: 2rem; cursor: pointer;
+    font-size: 1.8rem; cursor: pointer;
     box-shadow: 0 4px 12px rgba(255, 77, 109, 0.3);
 }
 
 .calendar-btn {
-    position: fixed; top: 15px; right: 75px; z-index: 100;
-    width: 45px; height: 45px; background: #ffb6c1;
-    color: white; border-radius: 50%;
+    width: 45px; height: 45px; background: white;
+    color: #ffb6c1; border-radius: 50%;
     display: flex; justify-content: center; align-items: center;
-    font-size: 1.5rem; cursor: pointer;
+    font-size: 1.3rem; cursor: pointer;
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    border: 2px solid white;
+    border: 1px solid #ffe5ec;
 }
 
 /* --- 4. BOTTOM NAVIGATION PILL --- */
@@ -142,11 +151,11 @@ body::before {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    width: 300px;
+    width: 320px;
     background: white;
     padding: 12px 20px;
     border-radius: 50px;
-    box-shadow: 0 8px 25px rgba(255, 182, 193, 0.6);
+    box-shadow: 0 8px 30px rgba(255, 182, 193, 0.7);
     border: 2px solid #ffe5ec;
     z-index: 2000;
 }
@@ -154,13 +163,8 @@ body::before {
 .nav-arrow {
     font-size: 1.6rem;
     cursor: pointer;
-    transition: transform 0.2s ease;
     user-select: none;
-    display: flex;
-    align-items: center;
 }
-
-.nav-arrow:active { transform: scale(0.9); }
 
 .nav-date {
     font-family: 'Georgia', serif;
@@ -168,15 +172,14 @@ body::before {
     font-weight: bold;
     text-align: center;
     font-size: 1.1rem;
-    min-width: 120px;
 }
 
-/* --- 5. MODALS & FORMS --- */
+/* --- 5. MODALS --- */
 .modal-overlay {
     position: fixed;
     top: 0; left: 0; width: 100vw; height: 100vh;
-    background: rgba(0, 0, 0, 0.4);
-    backdrop-filter: blur(5px);
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
     display: none;
     justify-content: center;
     align-items: center;
@@ -189,7 +192,7 @@ body::before {
     border-radius: 20px;
     width: 85%;
     max-width: 400px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
 }
 
 #note-text {
@@ -202,23 +205,30 @@ body::before {
     font-size: 1rem;
     margin: 15px 0;
     resize: none;
+    box-sizing: border-box;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
 }
 
 .save-btn {
-    background: #ff4d6d;
-    color: white;
-    border: none;
-    padding: 10px 25px;
-    border-radius: 25px;
-    font-weight: bold;
-    cursor: pointer;
+    background: #ff4d6d; color: white; border: none;
+    padding: 10px 25px; border-radius: 25px;
+    font-weight: bold; cursor: pointer;
+}
+
+.cancel-btn {
+    background: #f0f0f0; color: #666; border: none;
+    padding: 10px 20px; border-radius: 25px; cursor: pointer;
 }
 
 /* --- 6. RESPONSIVENESS --- */
 @media screen and (max-width: 600px) {
     body::before { left: 40px; }
-    .writing-surface { padding-left: 50px; width: calc(100% - 60px); }
-    .diary-nav { width: 85%; padding: 10px 15px; }
-    .nav-date { font-size: 1rem; min-width: 100px; }
-    .stacked-polaroid { width: 220px; }
+    .writing-surface { padding-left: 55px; }
+    .centered-polaroid { width: 90%; }
+    .diary-nav { width: 85%; }
 }
