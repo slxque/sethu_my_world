@@ -1,6 +1,6 @@
 /**
  * FOR MY WORLD - Siphosethu's Project
- * Final Integrated Script - Version 2.0 (Sticky Note Pile & Grid Implementation)
+ * Final Integrated Script - Version 5.0 (Full Data Recovery)
  */
 
 // --- 1. GLOBAL CONFIG & STATE ---
@@ -10,10 +10,11 @@ const supabaseUrl = 'https://hkgiedepklnazpllwswh.supabase.co';
 const supabaseKey = 'sb_publishable_LslgXtX5dpZfJ09zpst1gw_KnjGcOfB';
 
 let dailyUploads = {};
-let allNotes = []; // State to track notes specifically
+let allNotes = []; 
+let viewOffset = 0; 
 const supabaseClient = window.supabase ? window.supabase.createClient(supabaseUrl, supabaseKey) : null;
 
-// --- 2. DATA ARRAYS ---
+// --- 2. COMPLETE DATA ARRAYS ---
 const originalCompliments = [
     "You’re sweeter than an Oreo dipped in milk (but way more precious).",
     "I love that your taste is as refined as a KitKat Dark, not too sweet, just perfect.",
@@ -190,147 +191,111 @@ async function syncFromSupabase() {
         if (error) throw error;
 
         const freshData = {};
-        allNotes = []; // Reset local state
+        allNotes = [];
 
         if (data && data.length > 0) {
             data.forEach(row => {
                 const date = row.created_at ? row.created_at.split('T')[0] : new Date().toISOString().split('T')[0];
-
-                // Track for Daily Uploads (Polaroids)
                 if (!freshData[date]) freshData[date] = [];
-                freshData[date].push({
-                    type: row.mood_type,
-                    caption: row.caption,
-                    url: row.image_url
-                });
-
-                // Track specifically for the Sticky Pile
-                if (row.mood_type === 'note') {
-                    allNotes.push({ text: row.caption, date: date });
-                }
+                freshData[date].push({ type: row.mood_type, caption: row.caption, url: row.image_url });
+                if (row.mood_type === 'note') { allNotes.push({ text: row.caption, date: date }); }
             });
         }
         dailyUploads = freshData;
-        loadSavedEntries();
-        renderNotePile(); // New logic call
-    } catch (err) {
-        console.warn("Sync failed:", err.message);
-        loadSavedEntries();
-    }
+
+        // Check for Calendar Date selection via URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const sharedDate = urlParams.get('date');
+        if (sharedDate) {
+            const targetDate = new Date(sharedDate);
+            const today = new Date();
+            today.setHours(0,0,0,0); targetDate.setHours(0,0,0,0);
+            const diffTime = targetDate - today;
+            viewOffset = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        }
+
+        updateView();
+        renderNotePile();
+    } catch (err) { console.warn("Sync failed:", err.message); }
 }
 
-// --- 4. STICKY NOTE PILE LOGIC ---
+// --- 4. VIEW & NAVIGATION LOGIC ---
+function updateView() {
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() + viewOffset);
+    const dateKey = targetDate.toISOString().split('T')[0];
+    
+    const navDateDisplay = document.getElementById('current-nav-date');
+    if (navDateDisplay) {
+        navDateDisplay.innerText = targetDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+    }
+    renderDayEntries(dateKey);
+}
 
-// Render the 3-layer pile on the main surface
-function renderNotePile() {
-    const container = document.getElementById('sticky-pile-container');
+window.changeDay = (direction) => {
+    viewOffset += direction;
+    updateView();
+};
+
+// --- 5. UI RENDERING (DIARY LIST) ---
+function renderDayEntries(dateKey) {
+    const container = document.getElementById('diary-container');
     if (!container) return;
+    container.innerHTML = '';
 
-    if (allNotes.length === 0) {
-        container.style.display = 'none';
+    const dayItems = dailyUploads[dateKey] || [];
+    const visibleItems = dayItems.filter(i => i.caption || i.url);
+
+    if (visibleItems.length === 0) {
+        container.innerHTML = `<div style="color: #ffb6c1; font-style: italic; text-align: center; padding-top: 50px; width: 100%;">No memories logged yet...</div>`;
         return;
     }
 
-    container.style.display = 'block';
-    container.innerHTML = '';
+    const entry = document.createElement('div');
+    entry.className = 'diary-entry';
+    entry.innerHTML = `
+        <div class="entry-header">
+            <div class="date-main">${dateKey.replace(/-/g, '/')}</div>
+            <div class="dear-diary">Dear diary,</div>
+        </div>
+        <div class="entry-content-wrapper"></div>
+    `;
+    container.appendChild(entry);
+    const contentWrapper = entry.querySelector('.entry-content-wrapper');
 
-    const layers = Math.min(allNotes.length, 3);
-    for (let i = 0; i < layers; i++) {
-        const noteEl = document.createElement('div');
-        noteEl.className = 'stacked-note';
-
-        // Stack styling
-        const rotation = (i * 3) - 3;
-        noteEl.style.transform = `rotate(${rotation}deg) translate(${i * 2}px, ${i * 2}px)`;
-        noteEl.style.zIndex = 10 - i;
-
-        // Show text on top layer only
-        if (i === 0) {
-            noteEl.innerHTML = `<p>${allNotes[0].text}</p>`;
-        }
-        container.appendChild(noteEl);
+    // Media Display (Polaroids)
+    const mediaItems = visibleItems.filter(i => i.type === 'image' || i.type === 'video');
+    if (mediaItems.length > 0) {
+        const pile = document.createElement('div');
+        pile.className = 'polaroid-pile';
+        pile.onclick = () => openGrid(dateKey);
+        mediaItems.slice(0, 3).forEach((item, index) => {
+            const photo = document.createElement('div');
+            photo.className = 'stacked-polaroid';
+            const rot = (index % 2 === 0 ? 1 : -1) * (index * 4);
+            photo.style.transform = `rotate(${rot}deg) translate(${index * 5}px, ${index * 5}px)`;
+            photo.innerHTML = `
+                <div class="picture-frame">
+                    ${item.type === 'video' ? `<video src="${item.url}" muted loop autoplay></video>` : `<img src="${item.url}">`}
+                </div>
+                <div class="polaroid-footer">${item.caption || ''}</div>
+            `;
+            pile.appendChild(photo);
+        });
+        contentWrapper.appendChild(pile);
     }
-}
 
-// Open the grid view of all notes
-window.openNoteGrid = () => {
-    const grid = document.getElementById('sticky-grid');
-    const modal = document.getElementById('note-grid-modal');
-    if (!grid || !modal) return;
-
-    grid.innerHTML = '';
-    allNotes.forEach((note) => {
-        const item = document.createElement('div');
-        item.className = 'grid-note-item';
-        item.innerHTML = `<p>${note.text}</p>`;
-        item.onclick = () => openFullNote(note.text);
-        grid.appendChild(item);
+    // Text Display (Fix for Visibility - Notes/Verses/Compliments)
+    const textItems = visibleItems.filter(i => i.type !== 'image' && i.type !== 'video');
+    textItems.forEach(item => {
+        const textBox = document.createElement('div');
+        textBox.className = 'text-entry-box';
+        textBox.style.padding = "15px";
+        textBox.style.marginBottom = "10px";
+        textBox.innerHTML = `<p style="color: #ff4d6d; font-family: 'Georgia', serif; line-height: 1.6; margin: 0;">${item.caption}</p>`;
+        contentWrapper.appendChild(textBox);
     });
-
-    modal.style.display = 'flex';
-};
-
-window.closeNoteGrid = () => {
-    const modal = document.getElementById('note-grid-modal');
-    if (modal) modal.style.display = 'none';
-};
-
-// Full screen viewer for a single note
-window.openFullNote = (text) => {
-    const overlay = document.getElementById('note-viewer-overlay');
-    const content = document.getElementById('full-note-content');
-    if (!overlay || !content) return;
-
-    content.innerText = text;
-    overlay.style.display = 'flex';
-};
-
-window.closeNoteViewer = () => {
-    const overlay = document.getElementById('note-viewer-overlay');
-    if (overlay) overlay.style.display = 'none';
-};
-
-// --- 5. COMPONENT LOADING & UI ---
-
-async function loadStickyInterface() {
-    try {
-        const resp = await fetch('sticky.html');
-        const html = await resp.text();
-        // Check if elements already exist to prevent duplication
-        if (!document.getElementById('note-modal')) {
-            const div = document.createElement('div');
-            div.innerHTML = html;
-            document.body.appendChild(div);
-        }
-    } catch (e) { console.error("Failed to load sticky.html component", e); }
 }
-
-window.openNoteModal = () => {
-    const modal = document.getElementById('note-modal');
-    if (modal) modal.style.display = 'flex';
-};
-
-window.closeNoteModal = () => {
-    const modal = document.getElementById('note-modal');
-    if (modal) modal.style.display = 'none';
-};
-
-window.saveStickyNote = async () => {
-    const textInput = document.getElementById('note-text');
-    if (!textInput || !textInput.value.trim()) return;
-    const text = textInput.value;
-    try {
-        const { error } = await supabaseClient.from(TABLE_NAME).insert([{ mood_type: 'note', caption: text, image_url: null }]);
-        if (error) throw error;
-
-        closeNoteModal();
-        textInput.value = '';
-        syncFromSupabase(); // Refresh both pile and diary list
-    } catch (err) {
-        console.error("Save note failed:", err.message);
-        alert("Could not save your note right now.");
-    }
-};
 
 // --- 6. HOMEPAGE ACTIONS ---
 async function showItem(type) {
@@ -354,127 +319,61 @@ async function showItem(type) {
     }
 }
 
-async function logMood(mood) {
-    if (supabaseClient) {
-        try {
-            await supabaseClient.from(TABLE_NAME).insert([{ mood_type: 'mood_check', caption: `Mood: ${mood}` }]);
-        } catch (err) { console.warn("Mood log failed."); }
+// --- 7. STICKY NOTE PILE LOGIC ---
+function renderNotePile() {
+    const container = document.getElementById('sticky-pile-container');
+    if (!container || allNotes.length === 0) return;
+    container.innerHTML = '';
+    const layers = Math.min(allNotes.length, 3);
+    for (let i = 0; i < layers; i++) {
+        const noteEl = document.createElement('div');
+        noteEl.className = 'stacked-note';
+        const rotation = (i * 3) - 3;
+        noteEl.style.transform = `rotate(${rotation}deg) translate(${i * 2}px, ${i * 2}px)`;
+        if (i === 0) noteEl.innerHTML = `<p>${allNotes[0].text}</p>`;
+        container.appendChild(noteEl);
     }
 }
 
-// --- 7. NAVIGATION & MODALS ---
-function triggerUpload(event) {
-    if (event) event.stopPropagation();
-    const input = document.getElementById('file-input');
-    if (input) input.click();
-}
-
-function closeGrid() {
-    const modal = document.getElementById('gallery-modal');
-    if (modal) modal.style.display = 'none';
-}
-
-function closeFullScreen() {
-    const viewer = document.getElementById('full-screen-viewer');
-    if (viewer) viewer.style.display = 'none';
-    const container = document.getElementById('viewer-media');
-    if (container) container.innerHTML = '';
-}
+window.saveStickyNote = async () => {
+    const textInput = document.getElementById('note-text');
+    if (!textInput || !textInput.value.trim()) return;
+    const text = textInput.value;
+    try {
+        await supabaseClient.from(TABLE_NAME).insert([{ mood_type: 'note', caption: text, image_url: null }]);
+        closeNoteModal();
+        textInput.value = '';
+        syncFromSupabase();
+    } catch (err) { console.error("Save failed:", err.message); }
+};
 
 // --- 8. UPLOAD LOGIC ---
 async function handleUpload(event) {
     const files = event.target.files;
     if (!files || !files.length || !supabaseClient) return;
-
     for (let file of files) {
-        const userCaption = prompt(`Enter a caption for "${file.name}":`, "A special moment");
+        const userCaption = prompt(`Caption for "${file.name}":`, "A special moment");
         if (userCaption === null) continue;
         const filePath = `uploads/${Date.now()}-${file.name}`;
-
         try {
-            const { error: sErr } = await supabaseClient.storage.from(BUCKET_NAME).upload(filePath, file);
-            if (sErr) throw sErr;
+            await supabaseClient.storage.from(BUCKET_NAME).upload(filePath, file);
             const { data: { publicUrl } } = supabaseClient.storage.from(BUCKET_NAME).getPublicUrl(filePath);
-
             await supabaseClient.from(TABLE_NAME).insert([{
                 mood_type: file.type.startsWith('video') ? 'video' : 'image',
                 caption: userCaption,
                 image_url: publicUrl
             }]);
             syncFromSupabase();
-        } catch (err) { console.error("Upload failed:", err.message); }
+        } catch (err) { console.error("Upload failed"); }
     }
 }
 
-// --- 9. UI RENDERING (DIARY LIST) ---
-function loadSavedEntries() {
-    const container = document.getElementById('diary-container');
-    if (!container) return;
-
-    container.innerHTML = '';
-
-    const validKeys = Object.keys(dailyUploads).filter(dateKey => {
-        return dailyUploads[dateKey].some(i =>
-            (i.type === 'video' || i.type === 'image') && i.url && i.url !== "null"
-        );
-    });
-
-    if (validKeys.length === 0) {
-        container.innerHTML = `
-            <div id="placeholder-text" style="color: #ffb6c1; font-style: italic; font-family: 'Georgia', serif; text-align: center; padding-top: 50px; width: 100%;">
-                No memories logged yet... <br> Click the "+" or "📝" to add your first memory.
-            </div>
-        `;
-        return;
-    }
-
-    validKeys.sort().reverse().forEach(dateKey => {
-        const mediaItems = dailyUploads[dateKey].filter(i =>
-            (i.type === 'video' || i.type === 'image') && i.url && i.url !== "null"
-        );
-
-        const entry = document.createElement('div');
-        entry.className = 'diary-entry';
-        entry.innerHTML = `
-            <div class="entry-header">
-                <div class="date-main">${dateKey.replace(/-/g, '/')}</div>
-                <div class="dear-diary">Dear diary,</div>
-            </div>
-            <div class="entry-content-wrapper"></div>
-        `;
-        container.appendChild(entry);
-        const contentWrapper = entry.querySelector('.entry-content-wrapper');
-
-        if (mediaItems.length > 0) {
-            const pile = document.createElement('div');
-            pile.className = 'polaroid-pile';
-            pile.onclick = () => openGrid(dateKey);
-            mediaItems.slice(0, 3).forEach((item, index) => {
-                const photo = document.createElement('div');
-                photo.className = 'stacked-polaroid';
-                const rot = (index % 2 === 0 ? 1 : -1) * (index * 4);
-                photo.style.transform = `rotate(${rot}deg) translate(${index * 5}px, ${index * 5}px)`;
-                photo.style.zIndex = 10 - index;
-                photo.innerHTML = `
-                    <div class="picture-frame">
-                        ${item.type === 'video' ? `<video src="${item.url}" muted loop autoplay></video>` : `<img src="${item.url}">`}
-                    </div>
-                    <div class="polaroid-footer">${item.caption || ''}</div>
-                `;
-                pile.appendChild(photo);
-            });
-            contentWrapper.appendChild(pile);
-        }
-    });
-}
-
+// --- 9. MODALS & GALLERIES ---
 function openGrid(dateKey) {
     const modal = document.getElementById('gallery-modal');
     const content = modal.querySelector('.modal-content');
-    if (!content) return;
     content.innerHTML = '';
-
-    dailyUploads[dateKey].filter(i => (i.type === 'video' || i.type === 'image') && i.url && i.url !== "null").forEach(item => {
+    dailyUploads[dateKey].filter(i => i.url && i.url !== "null").forEach(item => {
         const div = document.createElement('div');
         div.className = 'gallery-item';
         div.innerHTML = `${item.type === 'video' ? `<video src="${item.url}"></video>` : `<img src="${item.url}">`}`;
@@ -487,24 +386,20 @@ function openGrid(dateKey) {
 function openFullScreen(url, type, caption) {
     const viewer = document.getElementById('full-screen-viewer');
     const container = document.getElementById('viewer-media');
-    if (!viewer || !container) return;
-    container.innerHTML = `
-        <div class="media-wrapper">
-            ${type === 'video' ? `<video src="${url}" controls autoplay></video>` : `<img src="${url}">`}
-            <div class="caption-strip">${caption || ''}</div>
-        </div>
-    `;
+    container.innerHTML = `<div class="media-wrapper">${type === 'video' ? `<video src="${url}" controls autoplay></video>` : `<img src="${url}">`}<div class="caption-strip">${caption || ''}</div></div>`;
     viewer.style.display = 'flex';
 }
 
 // --- 10. INITIALIZATION ---
-document.addEventListener('DOMContentLoaded', () => {
-    loadStickyInterface();
-    syncFromSupabase();
-});
+document.addEventListener('DOMContentLoaded', syncFromSupabase);
 
-// Attach globals for HTML event attributes
-window.showItem = showItem; window.logMood = logMood; window.handleUpload = handleUpload;
-window.openGrid = openGrid; window.closeGrid = closeGrid;
-window.openFullScreen = openFullScreen; window.closeFullScreen = closeFullScreen;
-window.triggerUpload = triggerUpload;
+// Globals for HTML triggers
+window.showItem = showItem; 
+window.handleUpload = handleUpload; 
+window.openGrid = openGrid;
+window.openFullScreen = openFullScreen; 
+window.closeFullScreen = () => document.getElementById('full-screen-viewer').style.display = 'none';
+window.closeGrid = () => document.getElementById('gallery-modal').style.display = 'none';
+window.triggerUpload = (e) => { if (e) e.stopPropagation(); document.getElementById('file-input').click(); };
+window.openNoteModal = () => document.getElementById('note-modal').style.display = 'flex';
+window.closeNoteModal = () => document.getElementById('note-modal').style.display = 'none';
