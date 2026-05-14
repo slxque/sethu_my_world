@@ -1,17 +1,15 @@
-/* --- STICKY NOTE COMPONENT STYLES --- */
+/* --- OUR DIGITAL DIARY - FULL INTEGRATED STYLES --- */
 
 /* 1. BUTTONS & UI POSITIONING */
 .action-buttons {
     position: fixed;
-    top: 90px;   /* Pushed down to sit clearly under the main '+' button */
-    right: 20px; /* Aligned with the right edge */
+    top: 90px;
+    right: 20px;
     z-index: 1000;
-
-    /* Vertical stack for the two buttons */
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 15px; /* Clean spacing between buttons */
+    gap: 15px;
 }
 
 .note-btn {
@@ -35,22 +33,57 @@
     background: #ff99aa;
 }
 
-/* 2. THE STICKY NOTE (Diary Entry View) */
+/* 2. THE PILE LOGIC (Critical for the Stacking Look) */
+.media-stack {
+    position: relative;
+    width: 100%;
+    max-width: 350px;
+    height: 380px; /* Space for items to pile */
+    margin: 40px auto;
+    cursor: pointer;
+}
+
+.stacked-item {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%); /* Centers items in the pile */
+    transition: transform 0.4s ease, box-shadow 0.3s ease;
+}
+
+/* Lift top items slightly on hover to show interactivity */
+.media-stack:hover .stacked-item {
+    margin-top: -10px;
+}
+
+/* Small badge showing item count */
+.pile-count {
+    position: absolute;
+    bottom: 20px;
+    right: 15%;
+    background: #ff4d6d;
+    color: white;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    z-index: 50;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    border: 2px solid white;
+}
+
+/* 3. THE STICKY NOTE (Individual Aesthetic) */
 .sticky-note {
-    background: #ffd1dc; /* Soft Pink Sticky Note */
+    background: #ffd1dc;
     padding: 35px 20px 20px 20px;
-    margin: 25px auto;
     min-height: 160px;
-    width: 85%;
-    max-width: 320px;
+    width: 280px;
     box-shadow: 8px 8px 18px rgba(0, 0, 0, 0.08);
     font-family: 'Georgia', serif;
     line-height: 1.7;
     color: #333;
-    transform: rotate(-2deg);
     position: relative;
-    border-bottom-right-radius: 50px 10px; /* Corner curl effect */
-    display: block;
+    border-bottom-right-radius: 50px 10px;
     border: 1px solid rgba(0,0,0,0.05);
 }
 
@@ -63,7 +96,6 @@
     transform: translateX(-50%) rotate(1deg);
     width: 80px;
     height: 24px;
-    /* Transparent Red (RGBA) to let diary lines/pink note show through */
     background: rgba(255, 80, 100, 0.4);
     backdrop-filter: blur(1px);
     border: 1px solid rgba(255, 255, 255, 0.2);
@@ -73,54 +105,105 @@
 
 .sticky-note p {
     margin: 0;
-    font-size: 1.15rem;
-    white-space: pre-wrap; /* Maintains line breaks for poems */
+    font-size: 1.1rem;
+    white-space: pre-wrap;
     word-wrap: break-word;
 }
 
-/* 3. MODAL OVERLAY */
+/* 4. GALLERY MODAL (The Grid Window) */
 .note-modal-overlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    display: none; /* Controlled by JavaScript */
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: none; /* Controlled by JS */
     justify-content: center;
     align-items: center;
     z-index: 9999;
-    backdrop-filter: blur(5px);
+    backdrop-filter: blur(8px);
 }
 
-/* 4. WRITING CARD (Popup) */
+.gallery-card {
+    background: #ffffff;
+    padding: 25px;
+    border-radius: 30px;
+    width: 90%;
+    max-width: 550px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(40px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.gallery-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #ffe5ec;
+    padding-bottom: 10px;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 15px;
+    padding-bottom: 20px;
+}
+
+.grid-item {
+    aspect-ratio: 1 / 1;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #f9f9f9;
+    cursor: pointer;
+    border: 3px solid white;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.grid-item img, .grid-item video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* 5. FULLSCREEN VIEWER */
+.fullscreen-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    display: none;
+    z-index: 10001;
+    justify-content: center;
+    align-items: center;
+}
+
+.fullscreen-content {
+    max-width: 95%;
+    max-height: 90%;
+    text-align: center;
+}
+
+.fullscreen-content img, .fullscreen-content video {
+    max-width: 100%;
+    max-height: 80vh;
+    border-radius: 5px;
+    box-shadow: 0 0 30px rgba(0,0,0,0.5);
+}
+
+/* 6. MODAL/NOTE CARD INTERNALS */
 .note-card {
     background: #ffffff;
     padding: 30px;
     border-radius: 25px;
     width: 90%;
     max-width: 420px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    animation: slideUp 0.3s ease-out;
-}
-
-@keyframes slideUp {
-    from { transform: translateY(30px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-}
-
-.note-header h3 {
-    margin: 0;
-    color: #ff4d6d;
-    font-size: 1.5rem;
-    text-align: center;
-}
-
-.note-header p {
-    color: #888;
-    font-size: 0.9rem;
-    text-align: center;
-    margin-bottom: 20px;
 }
 
 .note-card textarea {
@@ -129,45 +212,34 @@
     border: 2px solid #ffe5ec;
     border-radius: 15px;
     padding: 15px;
-    font-family: inherit;
     font-size: 1.1rem;
     outline: none;
     resize: none;
     box-sizing: border-box;
-    transition: border-color 0.3s;
 }
 
-.note-card textarea:focus {
-    border-color: #ffb6c1;
-}
-
-/* 5. MODAL BUTTONS */
 .note-actions {
     display: flex;
     gap: 12px;
     margin-top: 20px;
 }
 
-.cancel-btn, .save-note-btn {
+.save-note-btn {
     flex: 1;
     padding: 14px;
+    background: #ff4d6d;
+    color: white;
     border: none;
     border-radius: 30px;
     font-weight: bold;
     cursor: pointer;
-    font-size: 1rem;
-    transition: all 0.2s;
 }
 
 .cancel-btn {
+    flex: 1;
+    padding: 14px;
     background: #f5f5f5;
-    color: #777;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
 }
-
-.save-note-btn {
-    background: #ff4d6d;
-    color: white;
-}
-
-.cancel-btn:hover { background: #e0e0e0; }
-.save-note-btn:hover { background: #ff3355; transform: translateY(-2px); }
