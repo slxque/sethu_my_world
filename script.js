@@ -1,6 +1,6 @@
 /**
  * FOR MY WORLD - Integrated Script
- * Full Version: Integrated UI, Database, & Navigation
+ * Version 8.5: Full Pile Logic + Gallery + Fullscreen + Comp/Verse Data
  */
 
 // --- 1. GLOBAL CONFIG & STATE ---
@@ -14,7 +14,7 @@ let allNotes = [];
 let viewOffset = 0; 
 const supabaseClient = window.supabase ? window.supabase.createClient(supabaseUrl, supabaseKey) : null;
 
-// --- 2. COMPLETE DATA ARRAYS ---
+// --- 2. DATA ARRAYS ---
 const originalCompliments = [
     "You’re sweeter than an Oreo dipped in milk (but way more precious).",
     "I love that your taste is as refined as a KitKat Dark, not too sweet, just perfect.",
@@ -202,7 +202,6 @@ async function syncFromSupabase() {
                 const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
                 
                 if (!freshData[dateKey]) freshData[dateKey] = [];
-                
                 freshData[dateKey].push({ 
                     type: row.mood_type, 
                     caption: row.caption, 
@@ -216,6 +215,7 @@ async function syncFromSupabase() {
         }
         dailyUploads = freshData;
 
+        // Navigation check from URL
         const urlParams = new URLSearchParams(window.location.search);
         const sharedDate = urlParams.get('date');
         if (sharedDate) {
@@ -229,7 +229,7 @@ async function syncFromSupabase() {
     } catch (err) { console.warn("Sync failed:", err.message); }
 }
 
-// --- 4. VIEW & NAVIGATION ---
+// --- 4. NAVIGATION ---
 function updateView() {
     const targetDate = new Date();
     targetDate.setDate(targetDate.getDate() + viewOffset);
@@ -253,62 +253,116 @@ window.changeDay = (direction) => {
     updateView();
 };
 
-// --- 5. UI RENDERING (MESSY PILE & STICKY NOTES) ---
+// --- 5. PILE RENDERING ---
 function renderDayEntries(dateKey) {
     const container = document.getElementById('diary-container');
     if (!container) return;
     container.innerHTML = '';
 
-    const dayItems = dailyUploads[dateKey] || [];
-    if (dayItems.length === 0) {
-        container.innerHTML = `<div style="color: #ffb6c1; font-style: italic; text-align: center; padding-top: 50px; width: 100%;">
-            No memories logged for this day yet...</div>`;
+    const items = dailyUploads[dateKey] || [];
+    if (items.length === 0) {
+        container.innerHTML = `<div style="color: #ffb6c1; font-style: italic; text-align: center; padding-top: 50px; width: 100%;">No memories logged for this day yet...</div>`;
         return;
     }
 
-    const entry = document.createElement('div');
-    entry.className = 'diary-entry';
-    
-    let contentHtml = `
+    // Sort into Photos/Videos and Notes
+    const mediaItems = items.filter(i => i.type === 'image' || i.type === 'video');
+    const noteItems = items.filter(i => i.type === 'note');
+
+    let html = `
         <div class="entry-header">
             <div class="date-main">${dateKey.replace(/-/g, '/')}</div>
             <div class="dear-diary">Dear diary,</div>
-        </div>
-        <div class="media-stack" style="display: flex; flex-direction: column; align-items: center; gap: 40px; width: 100%;">`;
+        </div>`;
 
-    dayItems.forEach(item => {
-        if (item.type === 'image' || item.type === 'video') {
-            // Messy pile random rotation
-            const tilt = (Math.random() * 8 - 4).toFixed(2);
-            
-            contentHtml += `
-                <div class="centered-polaroid" style="transform: rotate(${tilt}deg); margin-bottom: 20px;">
+    // 5a. Render Photo Pile
+    if (mediaItems.length > 0) {
+        html += `<div class="media-stack" onclick='openGallery("Memories", ${JSON.stringify(mediaItems).replace(/'/g, "&apos;")})'>`;
+        // Show up to 3 items in the pile
+        mediaItems.slice(0, 3).forEach((item, index) => {
+            const tilt = (index * 4) - 4; // Slight fan effect
+            html += `
+                <div class="centered-polaroid stacked-item" style="transform: translateX(-50%) rotate(${tilt}deg); z-index: ${10 - index};">
                     <div class="picture-frame">
-                        ${item.type === 'video' 
-                            ? `<video src="${item.url}" muted loop autoplay playsinline style="width: 100%;"></video>` 
-                            : `<img src="${item.url}" style="width: 100%;">`}
-                    </div>
-                    <div class="polaroid-footer">
-                        ${(item.caption && item.caption !== "null") ? item.caption : ''}
+                        ${item.type === 'video' ? `<video src="${item.url}"></video>` : `<img src="${item.url}">`}
                     </div>
                 </div>`;
-        } else if (item.type === 'note') {
-            // Sticky note random rotation
-            const noteTilt = (Math.random() * 4 - 2).toFixed(2);
-            
-            contentHtml += `
-                <div class="sticky-note" style="transform: rotate(${noteTilt}deg); display: block;">
-                    <p>${item.caption}</p>
-                </div>`;
+        });
+        if (mediaItems.length > 1) {
+            html += `<div class="pile-count">+${mediaItems.length}</div>`;
         }
-    });
+        html += `</div>`;
+    }
 
-    contentHtml += `</div>`;
-    entry.innerHTML = contentHtml;
-    container.appendChild(entry);
+    // 5b. Render Sticky Note Pile
+    if (noteItems.length > 0) {
+        html += `<div class="media-stack" style="height: 220px; margin-top: 20px;" onclick='openGallery("Letters", ${JSON.stringify(noteItems).replace(/'/g, "&apos;")})'>`;
+        noteItems.slice(0, 3).forEach((note, index) => {
+            const tilt = (index * 3) - 3;
+            html += `
+                <div class="sticky-note stacked-item" style="transform: translateX(-50%) rotate(${tilt}deg); z-index: ${10 - index};">
+                    <p>${note.caption.substring(0, 60)}${note.caption.length > 60 ? '...' : ''}</p>
+                </div>`;
+        });
+        html += `</div>`;
+    }
+
+    container.innerHTML = html;
 }
 
-// --- 6. ACTIONS ---
+// --- 6. GALLERY & FULLSCREEN LOGIC ---
+window.openGallery = (title, items) => {
+    const galleryModal = document.getElementById('gallery-modal');
+    const galleryGrid = document.getElementById('gallery-grid');
+    const galleryTitle = document.getElementById('gallery-title');
+
+    galleryTitle.innerText = title;
+    galleryGrid.innerHTML = '';
+
+    items.forEach(item => {
+        const gridItem = document.createElement('div');
+        gridItem.className = 'grid-item';
+        
+        if (item.type === 'note') {
+            gridItem.innerHTML = `<div class="sticky-note" style="width:100%; min-height:100%; font-size:0.8rem; padding:15px; transform:none;">${item.caption}</div>`;
+        } else {
+            gridItem.innerHTML = item.type === 'video' ? `<video src="${item.url}"></video>` : `<img src="${item.url}">`;
+            gridItem.onclick = () => openFullscreen(item.url, item.type, item.caption);
+        }
+        galleryGrid.appendChild(gridItem);
+    });
+
+    galleryModal.style.display = 'flex';
+};
+
+function openFullscreen(url, type, caption) {
+    const viewer = document.getElementById('fullscreen-viewer');
+    const img = document.getElementById('fullscreen-img');
+    const vid = document.getElementById('fullscreen-vid');
+    const cap = document.getElementById('fullscreen-caption');
+
+    if (type === 'video') {
+        img.style.display = 'none';
+        vid.style.display = 'block';
+        vid.src = url;
+    } else {
+        vid.style.display = 'none';
+        img.style.display = 'block';
+        img.src = url;
+    }
+
+    cap.innerText = (caption && caption !== "null") ? caption : "";
+    viewer.style.display = 'flex';
+}
+
+window.closeGallery = () => { document.getElementById('gallery-modal').style.display = 'none'; };
+window.closeFullscreen = () => { 
+    const viewer = document.getElementById('fullscreen-viewer');
+    document.getElementById('fullscreen-vid').pause();
+    viewer.style.display = 'none'; 
+};
+
+// --- 7. UPLOAD & SAVE ---
 window.saveStickyNote = async () => {
     const textInput = document.getElementById('note-text');
     if (!textInput || !textInput.value.trim()) return;
@@ -319,7 +373,6 @@ window.saveStickyNote = async () => {
             .insert([{ mood_type: 'note', caption: textInput.value }]);
 
         if (error) throw error;
-
         window.closeNoteModal();
         textInput.value = '';
         syncFromSupabase(); 
@@ -331,7 +384,7 @@ window.triggerUpload = (e) => {
     document.getElementById('file-input').click();
 };
 
-async function handleUpload(event) {
+window.handleUpload = async (event) => {
     const files = event.target.files;
     if (!files || !files.length || !supabaseClient) return;
 
@@ -352,11 +405,9 @@ async function handleUpload(event) {
             syncFromSupabase();
         } catch (err) { console.error("Upload failed"); }
     }
-}
+};
 
-// --- 7. INITIALIZE ---
+// --- 8. INITIALIZE ---
 document.addEventListener('DOMContentLoaded', syncFromSupabase);
-
-window.handleUpload = handleUpload;
 window.openNoteModal = () => { document.getElementById('note-modal').style.display = 'flex'; };
 window.closeNoteModal = () => { document.getElementById('note-modal').style.display = 'none'; };
