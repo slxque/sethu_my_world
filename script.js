@@ -1,6 +1,6 @@
 /**
  * FOR MY WORLD - Siphosethu's Project
- * Final Integrated Script - Supabase-Only (Placeholder & Ghosting Fix)
+ * Final Integrated Script - Version 2.0 (Sticky Note Pile & Grid Implementation)
  */
 
 // --- 1. GLOBAL CONFIG & STATE ---
@@ -10,6 +10,7 @@ const supabaseUrl = 'https://hkgiedepklnazpllwswh.supabase.co';
 const supabaseKey = 'sb_publishable_LslgXtX5dpZfJ09zpst1gw_KnjGcOfB';
 
 let dailyUploads = {};
+let allNotes = []; // State to track notes specifically
 const supabaseClient = window.supabase ? window.supabase.createClient(supabaseUrl, supabaseKey) : null;
 
 // --- 2. DATA ARRAYS ---
@@ -185,30 +186,153 @@ const originalVerses = [
 async function syncFromSupabase() {
     if (!supabaseClient) return;
     try {
-        const { data, error } = await supabaseClient.from(TABLE_NAME).select('*');
+        const { data, error } = await supabaseClient.from(TABLE_NAME).select('*').order('created_at', { ascending: false });
         if (error) throw error;
 
         const freshData = {};
+        allNotes = []; // Reset local state
+
         if (data && data.length > 0) {
             data.forEach(row => {
                 const date = row.created_at ? row.created_at.split('T')[0] : new Date().toISOString().split('T')[0];
+
+                // Track for Daily Uploads (Polaroids)
                 if (!freshData[date]) freshData[date] = [];
                 freshData[date].push({
                     type: row.mood_type,
                     caption: row.caption,
                     url: row.image_url
                 });
+
+                // Track specifically for the Sticky Pile
+                if (row.mood_type === 'note') {
+                    allNotes.push({ text: row.caption, date: date });
+                }
             });
         }
         dailyUploads = freshData;
         loadSavedEntries();
+        renderNotePile(); // New logic call
     } catch (err) {
         console.warn("Sync failed:", err.message);
         loadSavedEntries();
     }
 }
 
-// --- 4. HOMEPAGE ACTIONS ---
+// --- 4. STICKY NOTE PILE LOGIC ---
+
+// Render the 3-layer pile on the main surface
+function renderNotePile() {
+    const container = document.getElementById('sticky-pile-container');
+    if (!container) return;
+
+    if (allNotes.length === 0) {
+        container.style.display = 'none';
+        return;
+    }
+
+    container.style.display = 'block';
+    container.innerHTML = '';
+
+    const layers = Math.min(allNotes.length, 3);
+    for (let i = 0; i < layers; i++) {
+        const noteEl = document.createElement('div');
+        noteEl.className = 'stacked-note';
+
+        // Stack styling
+        const rotation = (i * 3) - 3;
+        noteEl.style.transform = `rotate(${rotation}deg) translate(${i * 2}px, ${i * 2}px)`;
+        noteEl.style.zIndex = 10 - i;
+
+        // Show text on top layer only
+        if (i === 0) {
+            noteEl.innerHTML = `<p>${allNotes[0].text}</p>`;
+        }
+        container.appendChild(noteEl);
+    }
+}
+
+// Open the grid view of all notes
+window.openNoteGrid = () => {
+    const grid = document.getElementById('sticky-grid');
+    const modal = document.getElementById('note-grid-modal');
+    if (!grid || !modal) return;
+
+    grid.innerHTML = '';
+    allNotes.forEach((note) => {
+        const item = document.createElement('div');
+        item.className = 'grid-note-item';
+        item.innerHTML = `<p>${note.text}</p>`;
+        item.onclick = () => openFullNote(note.text);
+        grid.appendChild(item);
+    });
+
+    modal.style.display = 'flex';
+};
+
+window.closeNoteGrid = () => {
+    const modal = document.getElementById('note-grid-modal');
+    if (modal) modal.style.display = 'none';
+};
+
+// Full screen viewer for a single note
+window.openFullNote = (text) => {
+    const overlay = document.getElementById('note-viewer-overlay');
+    const content = document.getElementById('full-note-content');
+    if (!overlay || !content) return;
+
+    content.innerText = text;
+    overlay.style.display = 'flex';
+};
+
+window.closeNoteViewer = () => {
+    const overlay = document.getElementById('note-viewer-overlay');
+    if (overlay) overlay.style.display = 'none';
+};
+
+// --- 5. COMPONENT LOADING & UI ---
+
+async function loadStickyInterface() {
+    try {
+        const resp = await fetch('sticky.html');
+        const html = await resp.text();
+        // Check if elements already exist to prevent duplication
+        if (!document.getElementById('note-modal')) {
+            const div = document.createElement('div');
+            div.innerHTML = html;
+            document.body.appendChild(div);
+        }
+    } catch (e) { console.error("Failed to load sticky.html component", e); }
+}
+
+window.openNoteModal = () => {
+    const modal = document.getElementById('note-modal');
+    if (modal) modal.style.display = 'flex';
+};
+
+window.closeNoteModal = () => {
+    const modal = document.getElementById('note-modal');
+    if (modal) modal.style.display = 'none';
+};
+
+window.saveStickyNote = async () => {
+    const textInput = document.getElementById('note-text');
+    if (!textInput || !textInput.value.trim()) return;
+    const text = textInput.value;
+    try {
+        const { error } = await supabaseClient.from(TABLE_NAME).insert([{ mood_type: 'note', caption: text, image_url: null }]);
+        if (error) throw error;
+
+        closeNoteModal();
+        textInput.value = '';
+        syncFromSupabase(); // Refresh both pile and diary list
+    } catch (err) {
+        console.error("Save note failed:", err.message);
+        alert("Could not save your note right now.");
+    }
+};
+
+// --- 6. HOMEPAGE ACTIONS ---
 async function showItem(type) {
     const displayElement = document.getElementById('display-text');
     if (!displayElement) return;
@@ -238,7 +362,7 @@ async function logMood(mood) {
     }
 }
 
-// --- 5. NAVIGATION & MODALS ---
+// --- 7. NAVIGATION & MODALS ---
 function triggerUpload(event) {
     if (event) event.stopPropagation();
     const input = document.getElementById('file-input');
@@ -257,44 +381,7 @@ function closeFullScreen() {
     if (container) container.innerHTML = '';
 }
 
-// --- 6. STICKY NOTE COMPONENT LOGIC ---
-async function loadStickyInterface() {
-    try {
-        const resp = await fetch('sticky.html');
-        const html = await resp.text();
-        const div = document.createElement('div');
-        div.innerHTML = html;
-        document.body.appendChild(div);
-    } catch (e) { console.error("Failed to load sticky.html component", e); }
-}
-
-window.openNoteModal = () => {
-    const modal = document.getElementById('note-modal');
-    if (modal) modal.style.display = 'flex';
-};
-
-window.closeNoteModal = () => {
-    const modal = document.getElementById('note-modal');
-    if (modal) modal.style.display = 'none';
-};
-
-window.saveStickyNote = async () => {
-    const textInput = document.getElementById('note-text');
-    if (!textInput || !textInput.value.trim()) return;
-    const text = textInput.value;
-    try {
-        const { error } = await supabaseClient.from(TABLE_NAME).insert([{ mood_type: 'note', caption: text, image_url: null }]);
-        if (error) throw error;
-        closeNoteModal();
-        textInput.value = '';
-        syncFromSupabase();
-    } catch (err) {
-        console.error("Save note failed:", err.message);
-        alert("Could not save your note right now.");
-    }
-};
-
-// --- 7. THE UPLOAD LOGIC ---
+// --- 8. UPLOAD LOGIC ---
 async function handleUpload(event) {
     const files = event.target.files;
     if (!files || !files.length || !supabaseClient) return;
@@ -319,23 +406,19 @@ async function handleUpload(event) {
     }
 }
 
-// --- 8. UI RENDERING ---
+// --- 9. UI RENDERING (DIARY LIST) ---
 function loadSavedEntries() {
     const container = document.getElementById('diary-container');
     if (!container) return;
 
-    container.innerHTML = ''; // Clear to prevent ghosting
+    container.innerHTML = '';
 
-    // 1. FILTER: Only count keys that contain actual visible content (notes or media)
     const validKeys = Object.keys(dailyUploads).filter(dateKey => {
         return dailyUploads[dateKey].some(i =>
-            (i.type === 'video' || i.type === 'image' || i.type === 'note') &&
-            i.caption !== "null" &&
-            (i.type === 'note' || (i.url && i.url !== "null"))
+            (i.type === 'video' || i.type === 'image') && i.url && i.url !== "null"
         );
     });
 
-    // 2. CHECK: If no valid keys exist, show the placeholder
     if (validKeys.length === 0) {
         container.innerHTML = `
             <div id="placeholder-text" style="color: #ffb6c1; font-style: italic; font-family: 'Georgia', serif; text-align: center; padding-top: 50px; width: 100%;">
@@ -345,13 +428,9 @@ function loadSavedEntries() {
         return;
     }
 
-    // 3. RENDER: Only use the valid keys found above
     validKeys.sort().reverse().forEach(dateKey => {
         const mediaItems = dailyUploads[dateKey].filter(i =>
             (i.type === 'video' || i.type === 'image') && i.url && i.url !== "null"
-        );
-        const noteItems = dailyUploads[dateKey].filter(i =>
-            i.type === 'note' && i.caption && i.caption !== "null"
         );
 
         const entry = document.createElement('div');
@@ -386,13 +465,6 @@ function loadSavedEntries() {
             });
             contentWrapper.appendChild(pile);
         }
-
-        noteItems.forEach(noteItem => {
-            const note = document.createElement('div');
-            note.className = 'sticky-note';
-            note.innerHTML = `<p>${noteItem.caption}</p>`;
-            contentWrapper.appendChild(note);
-        });
     });
 }
 
@@ -402,7 +474,6 @@ function openGrid(dateKey) {
     if (!content) return;
     content.innerHTML = '';
 
-    // Filter to ensure only media with actual URLs show up in the grid
     dailyUploads[dateKey].filter(i => (i.type === 'video' || i.type === 'image') && i.url && i.url !== "null").forEach(item => {
         const div = document.createElement('div');
         div.className = 'gallery-item';
@@ -426,12 +497,13 @@ function openFullScreen(url, type, caption) {
     viewer.style.display = 'flex';
 }
 
-// --- 9. INITIALIZATION ---
+// --- 10. INITIALIZATION ---
 document.addEventListener('DOMContentLoaded', () => {
     loadStickyInterface();
     syncFromSupabase();
 });
 
+// Attach globals for HTML event attributes
 window.showItem = showItem; window.logMood = logMood; window.handleUpload = handleUpload;
 window.openGrid = openGrid; window.closeGrid = closeGrid;
 window.openFullScreen = openFullScreen; window.closeFullScreen = closeFullScreen;
