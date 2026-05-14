@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="sticky.css">
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <link rel="manifest" href="manifest.json">
 
     <script>
@@ -27,13 +28,32 @@
 </head>
 <body>
 
-<div class="back-btn" onclick="window.location.href='index.html'">⬅️ Back</div>
-<div class="add-btn" onclick="triggerUpload(event)">+</div>
-<div class="calendar-btn" onclick="window.location.href='calendar.html'" title="Open Calendar">📅</div>
+<div class="top-nav">
+    <div class="back-btn" onclick="window.location.href='index.html'">⬅️ Back</div>
+    <div class="header-right">
+        <div class="calendar-btn" onclick="window.location.href='calendar.html'" title="Open Calendar">
+            <img src="calendar_icon.png" alt="Calendar" id="calendar-img">
+        </div>
+        <div class="add-btn" onclick="triggerUpload(event)">+</div>
+    </div>
+</div>
 
 <div class="book-container">
     <div id="diary-container" class="writing-surface">
-        <div id="placeholder-text" class="placeholder">Make a diary entry</div>
+        <div id="placeholder-text" class="placeholder">Loading memories...</div>
+    </div>
+</div>
+
+<div class="sticky-icon" onclick="openNoteModal()">📝</div>
+
+<div id="note-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content note-input-card">
+        <h3>Write a Note</h3>
+        <textarea id="note-text" placeholder="What's on your mind?"></textarea>
+        <div class="modal-actions">
+            <button onclick="closeNoteModal()">Cancel</button>
+            <button onclick="saveStickyNote()" class="save-btn">Save</button>
+        </div>
     </div>
 </div>
 
@@ -44,16 +64,18 @@
     </div>
 </div>
 
-<div id="full-screen-viewer" class="full-screen-overlay" onclick="closeFullScreen()">
-    <div class="close-x" onclick="closeFullScreen()">&times;</div>
-    <div id="viewer-media" onclick="event.stopPropagation()">
+<div class="diary-nav-footer">
+    <div class="nav-arrow" id="prev-day" onclick="changeDay(-1)">
+        <img src="left-arrow.png" alt="Back">
     </div>
-</div>
+    
+    <div class="nav-center">
+        <span id="current-view-date" class="today-label">Today</span>
+    </div>
 
-<div class="diary-nav">
-    <div class="nav-arrow" onclick="changeDay(-1)">⬅️</div>
-    <div id="current-view-date" class="nav-date">Today</div>
-    <div id="next-day" class="nav-arrow" onclick="changeDay(1)" style="visibility: hidden;">➡️</div>
+    <div class="nav-arrow" id="next-day" onclick="changeDay(1)">
+        <img src="right-arrow.png" alt="Forward">
+    </div>
 </div>
 
 <input type="file" id="file-input" style="display: none;" accept="image/*,video/*" multiple onchange="handleUpload(event)">
