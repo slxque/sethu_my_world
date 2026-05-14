@@ -1,0 +1,117 @@
+/* --- 1. CALENDAR CONTAINER --- */
+.calendar-container {
+    max-width: 400px;
+    margin: 80px auto;
+    background: white;
+    padding: 25px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(255, 182, 193, 0.3);
+    border: 2px solid #ffe5ec;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    color: #ff4d6d;
+    font-family: 'Georgia', serif;
+}
+
+.calendar-header h2 {
+    margin: 0;
+    font-size: 1.4rem;
+}
+
+/* --- 2. THE GRID SYSTEM --- */
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr); /* Creates 7 equal columns */
+    gap: 8px;
+    text-align: center;
+}
+
+.day-name {
+    font-weight: bold;
+    color: #ffb6c1;
+    font-size: 0.75rem;
+    padding-bottom: 15px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Crucial for the logic: 'display: contents' makes the child
+   elements of #calendar-days behave as direct children of
+   the .calendar-grid, keeping the 7-column flow.
+*/
+.days-contents {
+    display: contents;
+}
+
+/* --- 3. INDIVIDUAL DAY STYLING --- */
+.day {
+    aspect-ratio: 1 / 1; /* Keeps dates perfectly circular/square */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    font-size: 0.95rem;
+    color: #d1d1d1; /* Faded color for days with no entries */
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    user-select: none;
+}
+
+/* RED HIGHLIGHT: For days that have a diary entry */
+.day.has-entry {
+    background-color: #ff4d6d;
+    color: white !important;
+    cursor: pointer;
+    font-weight: bold;
+    box-shadow: 0 4px 10px rgba(255, 77, 109, 0.3);
+}
+
+.day.has-entry:hover {
+    transform: scale(1.2);
+    background-color: #ff758f;
+    box-shadow: 0 6px 15px rgba(255, 77, 109, 0.4);
+}
+
+.day.empty {
+    visibility: hidden; /* Pads the start of the month */
+}
+
+/* --- 4. CONTROLS & NAVIGATION --- */
+.calendar-controls {
+    display: flex;
+    gap: 10px;
+}
+
+.calendar-controls button {
+    background: #fff;
+    border: 1px solid #ffe5ec;
+    color: #ff4d6d;
+    padding: 5px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.2s;
+}
+
+.calendar-controls button:hover {
+    background: #fff5f7;
+    border-color: #ff4d6d;
+}
+
+/* --- 5. MOBILE RESPONSIVENESS --- */
+@media (max-width: 450px) {
+    .calendar-container {
+        width: 85%;
+        padding: 15px;
+        margin: 60px auto;
+    }
+
+    .day {
+        font-size: 0.85rem;
+    }
+}

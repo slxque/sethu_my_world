@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#ffb6c1">
+
+    <title>Diary Calendar 📅</title>
+
+    <link rel="icon" type="image/png" href="icon.png.png">
+    <link rel="apple-touch-icon" href="icon.png.png">
+
+    <link rel="stylesheet" href="diary-style.css">
+    <link rel="stylesheet" href="calendar-style.css">
+</head>
+<body>
+
+<div class="back-btn" onclick="window.location.href='diary.html'">⬅️ Back to Diary</div>
+
+<div class="calendar-container">
+    <header class="calendar-header">
+        <h2 id="month-year-display">May 2026</h2>
+        <div class="calendar-controls">
+            <button onclick="changeMonth(-1)">❮</button>
+            <button onclick="changeMonth(1)">❯</button>
+        </div>
+    </header>
+
+    <div class="calendar-grid">
+        <div class="day-name">Sun</div>
+        <div class="day-name">Mon</div>
+        <div class="day-name">Tue</div>
+        <div class="day-name">Wed</div>
+        <div class="day-name">Thu</div>
+        <div class="day-name">Fri</div>
+        <div class="day-name">Sat</div>
+
+        <div id="calendar-days" class="days-contents"></div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="calendar-script.js"></script>
+</body>
+</html>
