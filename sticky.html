@@ -3,65 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Our Digital Diary - Scattered Notes Pile</title>
-    
-    <!-- Links your external stylesheet directly -->
+    <title>Digital Diary - Grid Workspace</title>
     <link rel="stylesheet" href="sticky.css">
 </head>
 <body>
 
-    <!-- BACKGROUND MAIN STACK PREVIEW (Triggers Workspace View on Click) -->
-    <div class="media-stack" onclick="openGalleryModal()">
-        <div class="sticky-note stacked-item" style="transform: translateX(-50%) rotate(-4deg); z-index: 3;">
-            <p>Tap our note stack to spread them out on the desktop! 📂</p>
-        </div>
-        <div class="sticky-note stacked-item" style="transform: translateX(-47%) rotate(3deg); z-index: 2;"></div>
-        <div class="sticky-note stacked-item" style="transform: translateX(-53%) rotate(-8deg); z-index: 1;"></div>
-    </div>
-
-    <!-- 1. FLOATING ACTION CONTROLS -->
     <div class="action-buttons">
         <div class="note-btn" onclick="openNoteModal()" title="Write a Note">📝</div>
-        <div class="note-btn" onclick="openGalleryModal()" title="Open Workspace">📂</div>
+        <div class="note-btn" onclick="openGalleryModal()" title="View Notes">📂</div>
     </div>
 
-    <!-- 2. THE GALLERY MODAL (Our Messy Desk Window Workspace) -->
     <div id="gallery-modal" class="note-modal-overlay" onclick="closeGalleryModal()">
         <div class="gallery-card" onclick="event.stopPropagation()">
             <div class="gallery-header">
-                <h3>Our Scattered Thoughts ❤️</h3>
-                <button class="cancel-btn" style="padding: 6px 16px; border-radius: 20px; width: auto;" onclick="closeGalleryModal()">Close Window</button>
+                <h3>Our Letters ❤️</h3>
+                <button class="close-x" onclick="closeGalleryModal()">&times;</button>
             </div>
 
-            <!-- The Workspace Container: Elements absolute scatter inside this framework box -->
             <div id="notes-workspace" class="grid-container">
-                
-                <!-- Core Prebuilt Examples to anchor the aesthetic layout -->
-                <div class="sticky-note" style="top: 30px; left: 40px; transform: rotate(-5deg); z-index: 1;" onclick="selectNote(this)">
-                    <p>Click the 📝 button on the side to write a new thought to add to our messy pile!</p>
+                <div class="sticky-note" onclick="openFullscreen('Hey my love ❤️, I don\'t know everything you are going through right now; all I can do is hope you are doing well...')">
+                    <p>Hey my love ❤️, I don't know everything...</p>
                 </div>
-                
-                <div class="sticky-note" style="top: 70px; left: 240px; transform: rotate(6deg); z-index: 2;" onclick="selectNote(this)">
-                    <p>Clicking any note smoothly shuffles it right to the top of our deck stack! ✨</p>
-                </div>
-
             </div>
-
-            <!-- Live Item Counter Status Pin -->
-            <div class="pile-count" id="note-counter" style="bottom: 15px; right: 25px;">Items: 2</div>
         </div>
     </div>
 
-    <!-- 3. INPUT WRITING BOX MODAL -->
     <div id="note-modal" class="note-modal-overlay" onclick="closeNoteModal()">
         <div class="note-card" onclick="event.stopPropagation()">
             <div class="note-header">
-                <h3>For My World ❤️</h3>
-                <p>Write a poem, letter, or a sweet thought...</p>
+                <h3>Write a Thought ❤️</h3>
             </div>
-
             <textarea id="note-text" placeholder="Start typing here..."></textarea>
-
             <div class="note-actions">
                 <button class="cancel-btn" onclick="closeNoteModal()">Cancel</button>
                 <button class="save-note-btn" onclick="saveStickyNote()">Stick it! ✨</button>
@@ -69,110 +41,51 @@
         </div>
     </div>
 
-    <!-- 4. WORKSPACE ENGINE INTERACTIVE BEHAVIORS -->
+    <div id="fullscreen-overlay" class="fullscreen-viewer" onclick="closeFullscreen()">
+        <div class="sticky-note fullscreen-card" onclick="event.stopPropagation()">
+            <div class="washi-tape"></div>
+            <p id="fullscreen-content"></p>
+            <button class="close-fullscreen" onclick="closeFullscreen()">Close View</button>
+        </div>
+    </div>
+
     <script>
-        // DOM Node Target Pointers
         const noteModal = document.getElementById('note-modal');
         const galleryModal = document.getElementById('gallery-modal');
-        const noteText = document.getElementById('note-text');
         const workspace = document.getElementById('notes-workspace');
-        const noteCounter = document.getElementById('note-counter');
+        const fullscreenOverlay = document.getElementById('fullscreen-overlay');
+        const fullscreenContent = document.getElementById('fullscreen-content');
 
-        // Dynamic layer controller tracker variable
-        let highestZIndex = 2; 
+        function openNoteModal() { noteModal.style.display = 'flex'; }
+        function closeNoteModal() { noteModal.style.display = 'none'; document.getElementById('note-text').value = ''; }
+        function openGalleryModal() { galleryModal.style.display = 'flex'; }
+        function closeGalleryModal() { galleryModal.style.display = 'none'; }
 
-        /* --- Window State Modifiers --- */
-        function openNoteModal() {
-            noteModal.style.display = 'flex';
-            noteText.focus();
+        function openFullscreen(text) {
+            fullscreenContent.textContent = text;
+            fullscreenOverlay.style.display = 'flex';
         }
 
-        function closeNoteModal() {
-            noteModal.style.display = 'none';
-            noteText.value = '';
+        function closeFullscreen() {
+            fullscreenOverlay.style.display = 'none';
         }
 
-        function openGalleryModal() {
-            galleryModal.style.display = 'flex';
-            updatePileCount();
-        }
-
-        function closeGalleryModal() {
-            galleryModal.style.display = 'none';
-        }
-
-        /* --- Active Note Focus & Sorting Switcher --- */
-        function selectNote(noteElement) {
-            // Remove highlighting/active status markers cleanly
-            document.querySelectorAll('.sticky-note').forEach(note => {
-                note.classList.remove('is-selected');
-            });
-            
-            // Advance runtime stack position to front position
-            highestZIndex++;
-            noteElement.style.zIndex = highestZIndex;
-            noteElement.classList.add('is-selected');
-        }
-
-        /* --- Generating Scattered Stack Items dynamically --- */
         function saveStickyNote() {
-            const content = noteText.value.trim();
-            if (content === '') return;
+            const text = document.getElementById('note-text').value.trim();
+            if (!text) return;
 
-            // Generate card framework base
             const newNote = document.createElement('div');
             newNote.className = 'sticky-note';
             
-            // Create internal structured wrap for content block paragraph safety
-            const textParagraph = document.createElement('p');
-            textParagraph.textContent = content;
-            newNote.appendChild(textParagraph);
-
-            // Fetch current boundaries runtime context lengths safely 
-            // Width adjustments subtract note size metrics to secure containment zones
-            const containerWidth = workspace.clientWidth || 700;
-            const containerHeight = workspace.clientHeight || 400;
-
-            const maxX = Math.max(containerWidth - 250, 15);
-            const maxY = Math.max(containerHeight - 170, 15);
-
-            // Compute organic random layout parameters (-8deg to +8deg skew limits)
-            const randomX = Math.floor(Math.random() * maxX);
-            const randomY = Math.floor(Math.random() * maxY);
-            const randomRotation = Math.floor(Math.random() * 16) - 8; 
+            // Preview text (truncated)
+            const preview = text.length > 60 ? text.substring(0, 60) + "..." : text;
+            newNote.innerHTML = `<p>${preview}</p>`;
             
-            highestZIndex++;
+            newNote.onclick = () => openFullscreen(text);
 
-            // Bind explicitly calculated layouts directly to the element style attributes
-            newNote.style.left = `${randomX}px`;
-            newNote.style.top = `${randomY}px`;
-            newNote.style.transform = `rotate(${randomRotation}deg)`;
-            newNote.style.zIndex = highestZIndex;
-
-            // Set local interactive event triggers directly to standard clicks
-            newNote.onclick = function() {
-                selectNote(newNote);
-            };
-
-            // Injects card directly inside our relative desktop area framework 
             workspace.appendChild(newNote);
-            
-            // Bring focus directly to your newly created piece instantly
-            selectNote(newNote);
-            
-            // Cleanup input parameters and swap panel display view directly to workspace
             closeNoteModal();
-            updatePileCount();
             openGalleryModal();
-        }
-
-        /* --- Utility Counter Checker --- */
-        function updatePileCount() {
-            // Evaluates current dynamic elements embedded inside sandbox window tracker
-            const count = workspace.querySelectorAll('.sticky-note').length;
-            if (noteCounter) {
-                noteCounter.textContent = `Items: ${count}`;
-            }
         }
     </script>
 </body>
