@@ -1,19 +1,326 @@
-<div class="action-buttons">
-    <div class="note-btn" onclick="openNoteModal()" title="Write a Note">📝</div>
-</div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sticky Notes Workspace</title>
+    <style>
+        /* --- Core Layout & Window --- */
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
 
-<div id="note-modal" class="note-modal-overlay" onclick="closeNoteModal()">
-    <div class="note-card" onclick="event.stopPropagation()">
-        <div class="note-header">
-            <h3>For My World ❤️</h3>
-            <p>Write a poem, letter, or a sweet thought...</p>
+        .window {
+            width: 90%;
+            max-width: 900px;
+            height: 650px;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid #e0e0e0;
+        }
+
+        .window-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* --- The Messy Workspace Container --- */
+        .notes-container {
+            flex-grow: 1;
+            position: relative;
+            background: #fafafa;
+            overflow: hidden; /* Keeps all notes trapped inside the window boundaries */
+            padding: 20px;
+        }
+
+        /* --- Dynamic Sticky Notes --- */
+        .sticky-note {
+            position: absolute;
+            width: 180px;
+            min-height: 140px;
+            padding: 15px;
+            background-color: #fffde1; /* Classic sticky yellow */
+            box-shadow: 3px 5px 12px rgba(0, 0, 0, 0.12);
+            border-radius: 2px;
+            cursor: pointer;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
+            user-select: none;
+            word-wrap: break-word;
+            font-family: 'Caveat', 'Comic Sans MS', cursive, sans-serif;
+            font-size: 1.1rem;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        /* Distinct color variations for variety in the pile */
+        .sticky-note:nth-child(3n+1) { background-color: #fffde1; } /* Yellow */
+        .sticky-note:nth-child(3n+2) { background-color: #e3faf2; } /* Mint */
+        .sticky-note:nth-child(3n+3) { background-color: #ffebf0; } /* Soft Pink */
+
+        /* Interaction: Brings the selected note to the top of the pile */
+        .sticky-note.is-selected {
+            z-index: 100 !important; /* Forces it above all standard dynamically set z-indexes */
+            transform: scale(1.05) rotate(0deg) !important; /* Straightens up slightly to read */
+            box-shadow: 8px 15px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        /* --- Action Buttons --- */
+        .action-buttons {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            z-index: 101; /* Stays above the notes pile */
+        }
+
+        .note-btn {
+            width: 55px;
+            height: 55px;
+            background: #ff4757;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(255, 71, 87, 0.4);
+            transition: transform 0.2s ease, background 0.2s ease;
+        }
+
+        .note-btn:hover {
+            transform: scale(1.1);
+            background: #ff6b81;
+        }
+
+        /* --- Modal Styling --- */
+        .note-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .note-modal-overlay.is-open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .note-card {
+            background: #fff;
+            padding: 25px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
+        }
+
+        .note-modal-overlay.is-open .note-card {
+            transform: translateY(0);
+        }
+
+        .note-header h3 {
+            margin: 0 0 5px 0;
+            color: #2c3e50;
+        }
+
+        .note-header p {
+            margin: 0 0 15px 0;
+            font-size: 0.9rem;
+            color: #7f8c8d;
+        }
+
+        textarea {
+            width: 100%;
+            height: 120px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            resize: none;
+            box-sizing: border-box;
+            font-family: inherit;
+            margin-bottom: 15px;
+            outline: none;
+        }
+
+        textarea:focus {
+            border-color: #ff4757;
+        }
+
+        .note-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .note-actions button {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s ease;
+        }
+
+        .cancel-btn {
+            background: #f1f2f6;
+            color: #57606f;
+        }
+
+        .cancel-btn:hover {
+            background: #dfe4ea;
+        }
+
+        .save-note-btn {
+            background: #ff4757;
+            color: white;
+        }
+
+        .save-note-btn:hover {
+            background: #ff6b81;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="window">
+        <div class="window-header">
+            <span>Workspace Dashboard</span>
+            <div style="display: flex; gap: 6px;">
+                <span style="width: 12px; height: 12px; background: #ff5f56; border-radius: 50%;"></span>
+                <span style="width: 12px; height: 12px; background: #ffbd2e; border-radius: 50%;"></span>
+                <span style="width: 12px; height: 12px; background: #27c93f; border-radius: 50%;"></span>
+            </div>
         </div>
+        
+        <!-- Sticky notes render messily inside this container -->
+        <div class="notes-container" id="workspace">
+            
+            <!-- Default placeholder notes showing the scatter logic -->
+            <div class="sticky-note" style="top: 40px; left: 50px; transform: rotate(-5deg); z-index: 1;" onclick="selectNote(this)">
+                Drop a sweet thought here... ✨
+            </div>
+            
+            <div class="sticky-note" style="top: 80px; left: 220px; transform: rotate(6deg); z-index: 2;" onclick="selectNote(this)">
+                Click me to bring me to the front of the pile!
+            </div>
 
-        <textarea id="note-text" placeholder="Start typing here..."></textarea>
-
-        <div class="note-actions">
-            <button class="cancel-btn" onclick="closeNoteModal()">Cancel</button>
-            <button class="save-note-btn" onclick="saveStickyNote()">Stick it! ✨</button>
+            <div class="action-buttons">
+                <div class="note-btn" onclick="openNoteModal()" title="Write a Note">📝</div>
+            </div>
         </div>
     </div>
-</div>
+
+    <!-- Modal Elements Structure -->
+    <div id="note-modal" class="note-modal-overlay" onclick="closeNoteModal()">
+        <div class="note-card" onclick="event.stopPropagation()">
+            <div class="note-header">
+                <h3>For My World ❤️</h3>
+                <p>Write a poem, letter, or a sweet thought...</p>
+            </div>
+
+            <textarea id="note-text" placeholder="Start typing here..."></textarea>
+
+            <div class="note-actions">
+                <button class="cancel-btn" onclick="closeNoteModal()">Cancel</button>
+                <button class="save-note-btn" onclick="saveStickyNote()">Stick it! ✨</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const modal = document.getElementById('note-modal');
+        const noteText = document.getElementById('note-text');
+        const workspace = document.getElementById('workspace');
+        
+        // Track overall higher z-index iterations to sort selections properly
+        let topZIndex = 2;
+
+        function openNoteModal() {
+            modal.classList.add('is-open');
+            noteText.focus();
+        }
+
+        function closeNoteModal() {
+            modal.classList.remove('is-open');
+            noteText.value = '';
+        }
+
+        // Shuffles active note to front inside the container boundary layout 
+        function selectNote(noteElement) {
+            document.querySelectorAll('.sticky-note').forEach(note => {
+                note.classList.remove('is-selected');
+            });
+            noteElement.classList.add('is-selected');
+        }
+
+        function saveStickyNote() {
+            const content = noteText.value.trim();
+            if (content === '') return;
+
+            // Generate a fresh sticky note node element
+            const newNote = document.createElement('div');
+            newNote.className = 'sticky-note';
+            newNote.textContent = content;
+
+            // Compute messy layout properties within container limits
+            // Restricting offsets so notes stay inside the 900x650 viewport box frame smoothly
+            const randomX = Math.floor(Math.random() * (workspace.clientWidth - 200));
+            const randomY = Math.floor(Math.random() * (workspace.clientHeight - 180));
+            const randomRotation = Math.floor(Math.random() * 16) - 8; // Degrees tilt range between -8 and +8
+            
+            topZIndex++;
+
+            // Set inline styles explicitly for positioning layout
+            newNote.style.top = `${randomY}px`;
+            newNote.style.left = `${randomX}px`;
+            newNote.style.transform = `rotate(${randomRotation}deg)`;
+            newNote.style.zIndex = topZIndex;
+
+            // Attach explicit internal window behavior selection event triggers
+            newNote.onclick = function() {
+                selectNote(newNote);
+            };
+
+            // Push into DOM workspace node tree tree architecture layout view
+            workspace.appendChild(newNote);
+            
+            // Re-select it instantly to focus up
+            selectNote(newNote);
+            
+            // Clear inputs out cleanly
+            closeNoteModal();
+        }
+    </script>
+</body>
+</html>
