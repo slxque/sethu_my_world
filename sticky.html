@@ -3,37 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Digital Diary - Grid Workspace</title>
+    <title>Digital Diary - Compact View</title>
     <link rel="stylesheet" href="sticky.css">
 </head>
 <body>
 
     <div class="action-buttons">
-        <div class="note-btn" onclick="openNoteModal()" title="Write a Note">📝</div>
-        <div class="note-btn" onclick="openGalleryModal()" title="View Notes">📂</div>
+        <div class="note-btn" onclick="openNoteModal()">📝</div>
+        <div class="note-btn" onclick="openGalleryModal()">📂</div>
     </div>
 
     <div id="gallery-modal" class="note-modal-overlay" onclick="closeGalleryModal()">
         <div class="gallery-card" onclick="event.stopPropagation()">
             <div class="gallery-header">
-                <h3>Our Letters ❤️</h3>
-                <button class="close-x" onclick="closeGalleryModal()">&times;</button>
+                <h3>Our Compact Pile ❤️</h3>
+                <span class="close-x" onclick="closeGalleryModal()">&times;</span>
             </div>
 
             <div id="notes-workspace" class="grid-container">
-                <div class="sticky-note" onclick="openFullscreen('Hey my love ❤️, I don\'t know everything you are going through right now; all I can do is hope you are doing well...')">
-                    <p>Hey my love ❤️, I don't know everything...</p>
                 </div>
-            </div>
         </div>
     </div>
 
     <div id="note-modal" class="note-modal-overlay" onclick="closeNoteModal()">
         <div class="note-card" onclick="event.stopPropagation()">
-            <div class="note-header">
-                <h3>Write a Thought ❤️</h3>
-            </div>
-            <textarea id="note-text" placeholder="Start typing here..."></textarea>
+            <h3>Write a Note</h3>
+            <textarea id="note-text" placeholder="Type here..."></textarea>
             <div class="note-actions">
                 <button class="cancel-btn" onclick="closeNoteModal()">Cancel</button>
                 <button class="save-note-btn" onclick="saveStickyNote()">Stick it! ✨</button>
@@ -42,48 +37,45 @@
     </div>
 
     <div id="fullscreen-overlay" class="fullscreen-viewer" onclick="closeFullscreen()">
-        <div class="sticky-note fullscreen-card" onclick="event.stopPropagation()">
+        <div class="fullscreen-card" onclick="event.stopPropagation()">
             <div class="washi-tape"></div>
             <p id="fullscreen-content"></p>
-            <button class="close-fullscreen" onclick="closeFullscreen()">Close View</button>
+            <button class="close-btn-fs" onclick="closeFullscreen()">Close View</button>
         </div>
     </div>
 
     <script>
-        const noteModal = document.getElementById('note-modal');
-        const galleryModal = document.getElementById('gallery-modal');
-        const workspace = document.getElementById('notes-workspace');
-        const fullscreenOverlay = document.getElementById('fullscreen-overlay');
-        const fullscreenContent = document.getElementById('fullscreen-content');
-
-        function openNoteModal() { noteModal.style.display = 'flex'; }
-        function closeNoteModal() { noteModal.style.display = 'none'; document.getElementById('note-text').value = ''; }
-        function openGalleryModal() { galleryModal.style.display = 'flex'; }
-        function closeGalleryModal() { galleryModal.style.display = 'none'; }
+        function openNoteModal() { document.getElementById('note-modal').style.display = 'flex'; }
+        function closeNoteModal() { 
+            document.getElementById('note-modal').style.display = 'none'; 
+            document.getElementById('note-text').value = ''; 
+        }
+        function openGalleryModal() { document.getElementById('gallery-modal').style.display = 'flex'; }
+        function closeGalleryModal() { document.getElementById('gallery-modal').style.display = 'none'; }
 
         function openFullscreen(text) {
-            fullscreenContent.textContent = text;
-            fullscreenOverlay.style.display = 'flex';
+            document.getElementById('fullscreen-content').textContent = text;
+            document.getElementById('fullscreen-overlay').style.display = 'flex';
         }
 
         function closeFullscreen() {
-            fullscreenOverlay.style.display = 'none';
+            document.getElementById('fullscreen-overlay').style.display = 'none';
         }
 
         function saveStickyNote() {
             const text = document.getElementById('note-text').value.trim();
             if (!text) return;
 
-            const newNote = document.createElement('div');
-            newNote.className = 'sticky-note';
+            const note = document.createElement('div');
+            note.className = 'sticky-note';
             
-            // Preview text (truncated)
-            const preview = text.length > 60 ? text.substring(0, 60) + "..." : text;
-            newNote.innerHTML = `<p>${preview}</p>`;
+            // Smaller preview snippet
+            const preview = text.length > 40 ? text.substring(0, 40) + "..." : text;
+            note.innerHTML = `<p>${preview}</p>`;
             
-            newNote.onclick = () => openFullscreen(text);
+            note.onclick = () => openFullscreen(text);
 
-            workspace.appendChild(newNote);
+            document.getElementById('notes-workspace').appendChild(note);
             closeNoteModal();
             openGalleryModal();
         }
