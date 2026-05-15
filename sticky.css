@@ -1,64 +1,75 @@
-/* Core Styling */
+/* Core Layout */
 body { margin: 0; background: #fceef2; font-family: 'Georgia', serif; }
 
-.action-buttons { position: fixed; top: 20px; right: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 8px; }
-.note-btn { width: 42px; height: 42px; background: #ffb6c1; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid white; box-shadow: 0 3px 8px rgba(0,0,0,0.1); font-size: 1.1rem; }
+.action-buttons { position: fixed; top: 20px; right: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
+.note-btn { width: 45px; height: 45px; background: #ffb6c1; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
 
-/* The Window Modal - Made more compact */
-.note-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); display: none; justify-content: center; align-items: center; z-index: 2000; backdrop-filter: blur(3px); }
+/* The Window Modal */
+.note-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: none; justify-content: center; align-items: center; z-index: 2000; backdrop-filter: blur(5px); }
+.gallery-card { background: white; border-radius: 20px; width: 85%; max-width: 700px; height: 65vh; display: flex; flex-direction: column; padding: 20px; box-sizing: border-box; }
+.gallery-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #fceef2; margin-bottom: 15px; padding-bottom: 10px; }
+.close-x { cursor: pointer; font-size: 1.5rem; color: #ff4d6d; }
 
-.gallery-card { 
-    background: white; 
-    border-radius: 15px; 
-    width: 80%; 
-    max-width: 650px; /* Thinner window */
-    height: 60vh;     /* Shorter window height to fit screen better */
-    display: flex; 
-    flex-direction: column; 
-    padding: 15px; 
-    box-shadow: 0 8px 30px rgba(0,0,0,0.15); 
-}
-
-.gallery-header { display: flex; justify-content: space-between; padding-bottom: 8px; margin-bottom: 15px; border-bottom: 1px solid #eee; }
-.gallery-header h3 { margin: 0; font-size: 1.1rem; color: #ff4d6d; }
-
-/* THE COMPACT GRID */
+/* THE GRID FIX - No more overlapping */
 .grid-container { 
     display: grid; 
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); /* Smaller columns */
-    gap: 15px; /* Tighter gap */
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); 
+    gap: 15px; /* Spacing between notes */
     overflow-y: auto; 
-    padding: 5px;
+    padding: 10px;
+    align-content: start;
 }
 
-/* Smaller Sticky Note */
+/* Individual Note (Preview Mode) */
 .sticky-note { 
     background: #ffd1dc; 
-    padding: 12px; 
-    height: 110px; /* Reduced height */
-    box-shadow: 3px 3px 6px rgba(0,0,0,0.05); 
+    padding: 15px; 
+    height: 120px; /* Fixed height so they are small and uniform */
+    box-shadow: 3px 3px 8px rgba(0,0,0,0.05); 
     cursor: pointer; 
-    border-bottom-right-radius: 20px 5px;
+    border-bottom-right-radius: 25px 5px;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
     overflow: hidden;
-    transition: transform 0.2s;
+    transition: transform 0.2s ease;
 }
-.sticky-note:hover { transform: scale(1.03); }
-.sticky-note p { font-size: 0.8rem; line-height: 1.3; color: #444; margin: 0; word-break: break-word; }
 
-/* Fullscreen stays large for readability */
-.fullscreen-viewer { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 9999; }
-.fullscreen-card { width: 85%; max-width: 450px; background: #ffd1dc; padding: 35px; box-shadow: 0 15px 40px rgba(0,0,0,0.4); position: relative; border-bottom-right-radius: 40px 8px; }
-.fullscreen-card p { font-size: 1.2rem; line-height: 1.6; color: #333; margin: 0; white-space: pre-wrap; }
-.washi-tape { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); width: 90px; height: 25px; background: rgba(255, 80, 100, 0.4); }
-.close-btn-fs { margin-top: 20px; padding: 10px 20px; background: #ff4d6d; color: white; border: none; border-radius: 20px; cursor: pointer; font-size: 0.9rem; }
+.sticky-note:hover { transform: scale(1.02); }
 
-/* Input Modal */
-.note-card { background: white; padding: 20px; border-radius: 15px; width: 280px; }
-textarea { width: 100%; height: 100px; border: 1px solid #ddd; border-radius: 10px; padding: 10px; box-sizing: border-box; resize: none; font-size: 0.9rem; }
-.note-actions { display: flex; gap: 8px; margin-top: 15px; }
-.save-note-btn { flex: 1; background: #ff4d6d; color: white; border: none; border-radius: 20px; cursor: pointer; font-size: 0.9rem; }
-.cancel-btn { background: #eee; border: none; border-radius: 20px; padding: 8px; cursor: pointer; font-size: 0.9rem; }
+/* Text Clamping - Prevents spillover text */
+.sticky-note p { 
+    font-size: 0.85rem; 
+    line-height: 1.4; 
+    color: #444; 
+    margin: 0; 
+    display: -webkit-box;
+    -webkit-line-clamp: 5; /* Only shows 5 lines of text in the grid */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* FULLSCREEN VIEW (Selected Mode) */
+.fullscreen-viewer { 
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
+    background: rgba(0,0,0,0.9); display: none; justify-content: center; 
+    align-items: center; z-index: 9999; 
+}
+
+.fullscreen-card { 
+    width: 90%; max-width: 500px; background: #ffd1dc; 
+    padding: 40px; border-radius: 2px; position: relative;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    border-bottom-right-radius: 60px 10px;
+}
+
+.fullscreen-inner { max-height: 60vh; overflow-y: auto; padding-right: 10px; }
+.fullscreen-inner p { font-size: 1.3rem; line-height: 1.8; color: #333; white-space: pre-wrap; margin: 0; }
+
+.washi-tape { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 120px; height: 35px; background: rgba(255, 80, 100, 0.4); }
+.back-btn { margin-top: 30px; padding: 12px 24px; background: #ff4d6d; color: white; border: none; border-radius: 25px; cursor: pointer; font-weight: bold; }
+
+/* Input Modal Styling */
+.note-card { background: white; padding: 30px; border-radius: 20px; width: 320px; }
+textarea { width: 100%; height: 120px; border: 1px solid #ddd; border-radius: 10px; padding: 12px; box-sizing: border-box; resize: none; font-family: inherit; }
+.note-actions { display: flex; gap: 10px; margin-top: 15px; }
+.save-note-btn { flex: 1; background: #ff4d6d; color: white; border: none; padding: 10px; border-radius: 20px; cursor: pointer; }
+.cancel-btn { background: #eee; border: none; padding: 10px; border-radius: 20px; cursor: pointer; }
