@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Digital Diary - Compact View</title>
+    <title>Our Digital Diary</title>
     <link rel="stylesheet" href="sticky.css">
 </head>
 <body>
@@ -16,7 +16,7 @@
     <div id="gallery-modal" class="note-modal-overlay" onclick="closeGalleryModal()">
         <div class="gallery-card" onclick="event.stopPropagation()">
             <div class="gallery-header">
-                <h3>Our Compact Pile ❤️</h3>
+                <h3>Our Letters ❤️</h3>
                 <span class="close-x" onclick="closeGalleryModal()">&times;</span>
             </div>
 
@@ -28,10 +28,10 @@
     <div id="note-modal" class="note-modal-overlay" onclick="closeNoteModal()">
         <div class="note-card" onclick="event.stopPropagation()">
             <h3>Write a Note</h3>
-            <textarea id="note-text" placeholder="Type here..."></textarea>
+            <textarea id="note-text" placeholder="Type your message..."></textarea>
             <div class="note-actions">
                 <button class="cancel-btn" onclick="closeNoteModal()">Cancel</button>
-                <button class="save-note-btn" onclick="saveStickyNote()">Stick it! ✨</button>
+                <button class="save-note-btn" onclick="saveStickyNote()">Save Note</button>
             </div>
         </div>
     </div>
@@ -39,12 +39,16 @@
     <div id="fullscreen-overlay" class="fullscreen-viewer" onclick="closeFullscreen()">
         <div class="fullscreen-card" onclick="event.stopPropagation()">
             <div class="washi-tape"></div>
-            <p id="fullscreen-content"></p>
-            <button class="close-btn-fs" onclick="closeFullscreen()">Close View</button>
+            <div class="fullscreen-inner">
+                <p id="fullscreen-content"></p>
+            </div>
+            <button class="back-btn" onclick="closeFullscreen()">Back to Gallery</button>
         </div>
     </div>
 
     <script>
+        const workspace = document.getElementById('notes-workspace');
+        
         function openNoteModal() { document.getElementById('note-modal').style.display = 'flex'; }
         function closeNoteModal() { 
             document.getElementById('note-modal').style.display = 'none'; 
@@ -69,13 +73,15 @@
             const note = document.createElement('div');
             note.className = 'sticky-note';
             
-            // Smaller preview snippet
-            const preview = text.length > 40 ? text.substring(0, 40) + "..." : text;
-            note.innerHTML = `<p>${preview}</p>`;
+            // The preview paragraph
+            const p = document.createElement('p');
+            p.textContent = text;
+            note.appendChild(p);
             
+            // On click, it triggers the full screen view
             note.onclick = () => openFullscreen(text);
 
-            document.getElementById('notes-workspace').appendChild(note);
+            workspace.appendChild(note);
             closeNoteModal();
             openGalleryModal();
         }
