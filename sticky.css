@@ -72,19 +72,22 @@
     border: 2px solid white;
 }
 
-/* 3. THE STICKY NOTE (Individual Aesthetic) */
+/* 3. THE STICKY NOTE (Individual Aesthetic & Messy Placement) */
 .sticky-note {
     background: #ffd1dc;
     padding: 35px 20px 20px 20px;
     min-height: 160px;
-    width: 280px;
-    box-shadow: 8px 8px 18px rgba(0, 0, 0, 0.08);
+    width: 240px; /* Slightly reduced width to ensure cards fit comfortably inside the window pile */
+    box-shadow: 4px 6px 15px rgba(0, 0, 0, 0.1);
     font-family: 'Georgia', serif;
     line-height: 1.7;
     color: #333;
-    position: relative;
+    position: absolute; /* Changed from relative to absolute so notes stack on top of each other */
     border-bottom-right-radius: 50px 10px;
     border: 1px solid rgba(0,0,0,0.05);
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.2), box-shadow 0.3s ease, z-index 0s;
 }
 
 /* Transparent Red Washi Tape Effect */
@@ -105,22 +108,29 @@
 
 .sticky-note p {
     margin: 0;
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     white-space: pre-wrap;
     word-wrap: break-word;
 }
 
-/* 4. GALLERY MODAL (The Grid Window) */
+/* Interactive Shuffling: Bring clicked note to front and straighten it slightly */
+.sticky-note.is-selected {
+    z-index: 500 !important; /* Force it past inline z-indices */
+    transform: scale(1.03) rotate(0deg) !important; /* Brings straight for clear reading */
+    box-shadow: 10px 15px 30px rgba(0,0,0,0.15);
+}
+
+/* 4. GALLERY MODAL (Turned into a Messy Desk Window) */
 .note-modal-overlay {
     position: fixed;
     top: 0; left: 0;
     width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, 0.6);
     display: none; /* Controlled by JS */
     justify-content: center;
     align-items: center;
     z-index: 9999;
-    backdrop-filter: blur(8px);
+    backdrop-filter: blur(6px);
 }
 
 .gallery-card {
@@ -128,10 +138,11 @@
     padding: 25px;
     border-radius: 30px;
     width: 90%;
-    max-width: 550px;
-    max-height: 80vh;
-    overflow-y: auto;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    max-width: 750px; /* Widened to provide breathing room for scattered notes */
+    height: 75vh;     /* Fixed height so it acts like a true desktop container window */
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     animation: slideUp 0.3s ease-out;
 }
 
@@ -144,19 +155,24 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     border-bottom: 2px solid #ffe5ec;
     padding-bottom: 10px;
 }
 
+/* The Workspace: Swapped from CSS Grid to a Relative Sandbox */
 .grid-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-    gap: 15px;
-    padding-bottom: 20px;
+    position: relative; /* Essential context for absolute notes */
+    flex-grow: 1;
+    width: 100%;
+    overflow: hidden; /* Keeps all notes trapped inside the card window borders */
+    background: #fafafc; /* Subtle paper desk tone background */
+    border-radius: 18px;
+    border: 1px dashed #ffd1dc;
 }
 
 .grid-item {
+    /* Kept for image/video compatibilities if shared with other script functionalities */
     aspect-ratio: 1 / 1;
     border-radius: 12px;
     overflow: hidden;
@@ -172,7 +188,7 @@
     object-fit: cover;
 }
 
-/* 5. FULLSCREEN VIEWER */
+/* 5. FULLSCREEN VIEWER (Remains unchanged for media compatibility) */
 .fullscreen-overlay {
     position: fixed;
     top: 0; left: 0;
