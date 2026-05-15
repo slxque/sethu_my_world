@@ -1,0 +1,225 @@
+/* --- STICKY NOTE COMPONENT STYLES --- */
+
+/* 0. LAYOUT OVERRIDES (Fixes the gap and navigation overlap) */
+.diary-entry {
+    margin-bottom: 20px !important;
+}
+
+body {
+    padding-bottom: 150px !important;
+}
+
+/* 1. BUTTONS & UI POSITIONING */
+.action-buttons {
+    position: fixed;
+    top: 75px;
+    right: 20px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.note-btn {
+    width: 48px;
+    height: 48px;
+    background: #ffb6c1;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.3rem;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 2px solid white;
+}
+
+.note-btn:hover {
+    transform: scale(1.1) rotate(5deg);
+    background: #ff99aa;
+}
+
+/* 2. THE PUSH-PIN STYLE */
+.sticky-note::before {
+    content: "";
+    position: absolute;
+    top: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 12px;
+    height: 12px;
+    background: radial-gradient(circle at 4px 4px, #ff4d6d, #b30000);
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    z-index: 10;
+}
+
+.sticky-note::after {
+    content: "";
+    position: absolute;
+    top: 15px;
+    left: 51%;
+    width: 2px;
+    height: 5px;
+    background: rgba(0,0,0,0.2);
+    z-index: 9;
+}
+
+/* 3. NOTE PILE & STACKING (Diary Page View) */
+.note-pile {
+    position: relative;
+    width: 280px;
+    height: 180px;
+    margin: -20px auto 100px auto;
+    cursor: pointer;
+    z-index: 5;
+}
+
+.stacked-note {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: #ffd1dc;
+    padding: 30px 20px 20px 20px;
+    width: 100%;
+    height: 180px;
+    box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.08);
+    font-family: 'Georgia', serif;
+    color: #333;
+    border: 1px solid rgba(0,0,0,0.05);
+    transition: transform 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+}
+
+.stacked-note p {
+    margin: 0;
+    font-size: 0.95rem;
+    text-align: center;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* 4. MODAL GRID VIEW - THIS FIXES THE WINDOW GRID */
+#sticky-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Two notes per row */
+    gap: 15px;
+    padding: 10px;
+}
+
+.grid-note-item {
+    background: #ffd1dc;
+    padding: 25px;
+    border-radius: 8px;
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    overflow: hidden;
+    position: relative;
+}
+
+.grid-note-item::before {
+    content: "";
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 8px;
+    height: 8px;
+    background: #ff4d6d;
+    border-radius: 50%;
+}
+
+.grid-note-item p {
+    font-size: 0.85rem;
+    color: #444;
+    text-align: center;
+    margin: 0;
+}
+
+/* 5. FULL SCREEN NOTE VIEW */
+.full-note-view {
+    background: #ffd1dc;
+    width: 85%;
+    max-width: 450px;
+    min-height: 250px;
+    padding: 50px 30px 30px 30px;
+    position: relative;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+    border-radius: 4px;
+    font-family: 'Georgia', serif;
+    font-size: 1.2rem;
+    line-height: 1.7;
+    color: #333;
+    white-space: pre-wrap;
+    animation: noteFade 0.3s ease-out;
+}
+
+@keyframes noteFade {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+/* 6. MODAL OVERLAYS & WRITING CARD */
+.note-modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    backdrop-filter: blur(5px);
+}
+
+.note-card {
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 25px;
+    width: 90%;
+    max-width: 420px;
+}
+
+.note-card h3 {
+    margin-top: 0;
+    color: #ff4d6d;
+}
+
+.note-card textarea {
+    width: 100%;
+    height: 200px;
+    border: 2px solid #ffe5ec;
+    border-radius: 15px;
+    padding: 15px;
+    resize: none;
+    box-sizing: border-box;
+    font-family: inherit;
+}
+
+.note-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.save-note-btn {
+    background: #ff4d6d;
+    color: white;
+    flex: 1;
+    padding: 14px;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    font-weight: bold;
+}
