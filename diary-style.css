@@ -300,7 +300,10 @@ body::before {
 
     /* 📱 NEW MOBILE PLACEHOLDER ADJUSTMENT */
     .placeholder {
-        left: 42px; /* Shifts right against the mobile 40px margin line */
-        font-size: 1.3rem; /* Scales font slightly down so it fits smaller mobile screens beautifully */
+        position: absolute;
+        top: 29px; /* Lowered perfectly onto the line */
+        left: 42px; /* Hard-locked right against the 40px line on all real devices */
+        font-size: 1.2rem; /* Scaled down slightly to fit small screens without wrapping */
+        line-height: 35px;
     }
 }
