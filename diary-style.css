@@ -32,6 +32,28 @@ body::before {
     width: calc(100% - 100px);
 }
 
+/* --- TYPE & PLACEHOLDER STYLING --- */
+.placeholder {
+    position: absolute;
+    top: 40px; /* Keeps the text resting perfectly on the line */
+    left: 3px; /* Flushed right against the 60px red margin line */
+    font-family: 'Georgia', 'Cursive', serif;
+    font-size: 1.6rem;
+    color: #ff758f; /* Beautiful rose pink theme color */
+    font-style: italic;
+    letter-spacing: 1px;
+    opacity: 0.85;
+    user-select: none;
+    pointer-events: none;
+    line-height: 35px; /* Maintains alignment with the notebook grid row height */
+    animation: fadeInPlaceholder 0.5s ease-out;
+}
+
+@keyframes fadeInPlaceholder {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 0.85; transform: translateY(0); }
+}
+
 /* --- 2. DIARY ENTRIES & PILES --- */
 .diary-entry {
     background: transparent;
