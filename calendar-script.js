@@ -3,55 +3,64 @@
  * Specifically for the Digital Diary Project
  */
 
-// 1. SUPABASE CONFIG (Match your script.js)
+// 1. SUPABASE CONFIG
 const supabaseUrl = 'https://hkgiedepklnazpllwswh.supabase.co';
 const supabaseKey = 'sb_publishable_LslgXtX5dpZfJ09zpst1gw_KnjGcOfB';
-const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+const supabaseClient = window.supabase ? window.supabase.createClient(supabaseUrl, supabaseKey) : null;
 
 let currentMonth = new Date().getMonth();
 let currentYear = new Date().getFullYear();
 let datesWithEntries = new Set();
 
-// 2. FETCH ACTIVE DATES
+// 2. FETCH ACTIVE DATES FROM DATABASE
 async function getActiveDates() {
+    if (!supabaseClient) {
+        renderCalendar();
+        return;
+    }
     try {
-        // We only need the 'created_at' column to highlight the calendar
         const { data, error } = await supabaseClient
             .from('mood_logs')
             .select('created_at');
 
         if (error) throw error;
 
-        // Convert timestamps to YYYY-MM-DD format and store in a Set for fast lookup
-        data.forEach(row => {
-            const dateStr = row.created_at.split('T')[0];
-            datesWithEntries.add(dateStr);
-        });
+        datesWithEntries.clear();
+        if (data && Array.isArray(data)) {
+            data.forEach(row => {
+                if (row.created_at) {
+                    const dateStr = row.created_at.split('T')[0];
+                    datesWithEntries.add(dateStr);
+                }
+            });
+        }
 
         renderCalendar();
     } catch (err) {
         console.error("Error fetching dates:", err.message);
-        renderCalendar(); // Render anyway even if fetch fails
+        renderCalendar();
     }
 }
 
-// 3. RENDER THE CALENDAR
+// 3. RENDER THE CALENDAR STRUCTURE
 function renderCalendar() {
     const daysContainer = document.getElementById('calendar-days');
     const monthDisplay = document.getElementById('month-year-display');
 
-    if (!daysContainer) return;
+    if (!daysContainer || !monthDisplay) return;
     daysContainer.innerHTML = '';
 
-    // Set Header Display
+    // Set Header Display Text
     const date = new Date(currentYear, currentMonth);
     const monthName = date.toLocaleString('default', { month: 'long' });
     monthDisplay.innerText = `${monthName} ${currentYear}`;
 
-    // Get first day of month (0 = Sun, 1 = Mon...)
     const firstDayIndex = new Date(currentYear, currentMonth, 1).getDay();
-    // Get total days in month
     const lastDay = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+    // Get today's real-world system date (YYYY-MM-DD)
+    const todayObj = new Date();
+    const todayStr = `${todayObj.getFullYear()}-${(todayObj.getMonth() + 1).toString().padStart(2, '0')}-${todayObj.getDate().toString().padStart(2, '0')}`;
 
     // Create empty slots for days before the 1st of the month
     for (let i = 0; i < firstDayIndex; i++) {
@@ -60,22 +69,27 @@ function renderCalendar() {
         daysContainer.appendChild(emptyDiv);
     }
 
-    // Create the actual days
+    // Create the actual day items
     for (let i = 1; i <= lastDay; i++) {
         const dayDiv = document.createElement('div');
         dayDiv.className = 'day';
         dayDiv.innerText = i;
 
-        // Format this specific day to YYYY-MM-DD for comparison
         const formatMonth = (currentMonth + 1).toString().padStart(2, '0');
         const formatDay = i.toString().padStart(2, '0');
         const fullDateStr = `${currentYear}-${formatMonth}-${formatDay}`;
 
-        // Check if this date has an entry in our Set
-        if (datesWithEntries.has(fullDateStr)) {
+        // 💜 RULE 1: If it's today's date, assign purple class highlight
+        if (fullDateStr === todayStr) {
+            dayDiv.classList.add('is-today');
+            dayDiv.onclick = () => {
+                window.location.href = `diary.html?date=${fullDateStr}`;
+            };
+        }
+        // 💗 RULE 2: If it has past entry records, assign pink class highlight
+        else if (datesWithEntries.has(fullDateStr)) {
             dayDiv.classList.add('has-entry');
             dayDiv.onclick = () => {
-                // Navigate back to diary and pass the date via URL parameter
                 window.location.href = `diary.html?date=${fullDateStr}`;
             };
         }
@@ -97,5 +111,5 @@ window.changeMonth = (direction) => {
     renderCalendar();
 };
 
-// Initialize
+// Start initialization on window load
 document.addEventListener('DOMContentLoaded', getActiveDates);
