@@ -26,43 +26,50 @@
 
 /* --- 2. THE GRID SYSTEM --- */
 .calendar-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr); /* Creates 7 equal columns */
-    gap: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
     text-align: center;
+}
+
+/* Row wrapper layout for the day names (Sun, Mon, etc.) */
+.calendar-grid > .day-name {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
 }
 
 .day-name {
     font-weight: bold;
     color: #ffb6c1;
     font-size: 0.75rem;
-    padding-bottom: 15px;
+    padding-bottom: 5px;
     text-transform: uppercase;
     letter-spacing: 1px;
 }
 
-/* Crucial for the logic: 'display: contents' makes the child
-   elements of #calendar-days behave as direct children of
-   the .calendar-grid, keeping the 7-column flow.
-*/
-.days-contents {
-    display: contents;
+/* 🎯 FIXED BULLETPROOF INNER GRID SYSTEM */
+#calendar-days {
+    display: grid !important;
+    grid-template-columns: repeat(7, 1fr) !important; /* Forces side-by-side horizontal matching rows */
+    gap: 8px !important;
+    width: 100%;
 }
 
 /* --- 3. INDIVIDUAL DAY STYLING --- */
 .day {
-    aspect-ratio: 1 / 1; /* Keeps dates perfectly circular/square */
+    aspect-ratio: 1 / 1; /* Keeps dates perfectly circular */
     display: flex;
     justify-content: center;
     align-items: center;
     border-radius: 50%;
     font-size: 0.95rem;
-    color: #d1d1d1; /* Faded color for days with no entries */
+    color: #d1d1d1; /* Faded tint for days with no diary logs */
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     user-select: none;
 }
 
-/* RED HIGHLIGHT: For days that have a diary entry */
+/* 💗 PINK HIGHLIGHT: For past days that have a saved diary entry */
 .day.has-entry {
     background-color: #ff4d6d;
     color: white !important;
@@ -77,8 +84,25 @@
     box-shadow: 0 6px 15px rgba(255, 77, 109, 0.4);
 }
 
+/* 💜 PURPLE HIGHLIGHT: For the active current real-world day */
+.day.is-today {
+    background-color: #b388ff !important; /* Soft premium violet accent */
+    color: white !important;
+    cursor: pointer;
+    font-weight: bold;
+    border: 2px solid #7c4dff; /* Polished ring border line */
+    box-shadow: 0 4px 10px rgba(124, 77, 255, 0.35);
+    transform: scale(1.05); /* Gives today a subtle interactive pop */
+}
+
+.day.is-today:hover {
+    transform: scale(1.2);
+    background-color: #7c4dff !important; /* Deepens when she positions cursor over today */
+    box-shadow: 0 6px 15px rgba(124, 77, 255, 0.5);
+}
+
 .day.empty {
-    visibility: hidden; /* Pads the start of the month */
+    visibility: hidden; /* Safely hides blank structural spacing buffer squares */
 }
 
 /* --- 4. CONTROLS & NAVIGATION --- */
