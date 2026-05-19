@@ -281,19 +281,26 @@ body::before {
 
 /* --- 7. RESPONSIVENESS --- */
 @media screen and (max-width: 600px) {
-    body::before { left: 40px; }
-    .writing-surface { padding-left: 50px; width: calc(100% - 60px); }
-    .modal-content { grid-template-columns: repeat(2, 1fr); }
-    .caption-strip { font-size: 0.9rem; width: 90%; bottom: 10%; }
+    body::before { left: 40px; } /* Your existing rule */
+    .writing-surface { padding-left: 50px; width: calc(100% - 60px); } /* Your existing rule */
+    .modal-content { grid-template-columns: repeat(2, 1fr); } /* Your existing rule */
+    .caption-strip { font-size: 0.9rem; width: 90%; bottom: 10%; } /* Your existing rule */
 
     /* Adjust navigation for mobile screens */
     .diary-nav {
         width: 80%;
         gap: 15px;
         padding: 10px 15px;
-    }
+    } /* Your existing rule */
+
     .nav-date {
         font-size: 0.9rem;
         min-width: 90px;
+    } /* Your existing rule */
+
+    /* 📱 NEW MOBILE PLACEHOLDER ADJUSTMENT */
+    .placeholder {
+        left: 42px; /* Shifts right against the mobile 40px margin line */
+        font-size: 1.3rem; /* Scales font slightly down so it fits smaller mobile screens beautifully */
     }
 }
