@@ -24,36 +24,32 @@
     font-size: 1.4rem;
 }
 
-/* --- 2. THE GRID SYSTEM --- */
-.calendar-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    text-align: center;
-}
+/* --- 2. THE GRID SYSTEMS --- */
 
-/* Row wrapper layout for the day names (Sun, Mon, etc.) */
-.calendar-grid > .day-name {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 8px;
+/* 🎯 FIXED WEEKDAY HEADERS ROW: Forces Sun - Sat to arrange horizontally */
+.calendar-day-names-row {
+    display: grid !important;
+    grid-template-columns: repeat(7, 1fr) !important;
+    gap: 8px !important;
+    text-align: center;
+    margin-bottom: 12px;
 }
 
 .day-name {
     font-weight: bold;
     color: #ffb6c1;
     font-size: 0.75rem;
-    padding-bottom: 5px;
     text-transform: uppercase;
     letter-spacing: 1px;
 }
 
-/* 🎯 FIXED BULLETPROOF INNER GRID SYSTEM */
+/* 🎯 FIXED NUMBERED DAYS GRID: Hard-locks numbers into 7 matching horizontal columns */
 #calendar-days {
     display: grid !important;
-    grid-template-columns: repeat(7, 1fr) !important; /* Forces side-by-side horizontal matching rows */
+    grid-template-columns: repeat(7, 1fr) !important;
     gap: 8px !important;
     width: 100%;
+    text-align: center;
 }
 
 /* --- 3. INDIVIDUAL DAY STYLING --- */
@@ -97,12 +93,12 @@
 
 .day.is-today:hover {
     transform: scale(1.2);
-    background-color: #7c4dff !important; /* Deepens when she positions cursor over today */
+    background-color: #7c4dff !important; /* Deepens when hovered */
     box-shadow: 0 6px 15px rgba(124, 77, 255, 0.5);
 }
 
 .day.empty {
-    visibility: hidden; /* Safely hides blank structural spacing buffer squares */
+    visibility: hidden; /* Safely hides blank structural buffer squares */
 }
 
 /* --- 4. CONTROLS & NAVIGATION --- */
